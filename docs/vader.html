@@ -1,0 +1,1887 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>vader.vader API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>vader.vader</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import tensorflow as tf
+from functools import partial
+from scipy.optimize import linear_sum_assignment as linear_assignment
+from sklearn import metrics
+from scipy.stats import multivariate_normal
+import sys
+import os
+import numpy as np
+import warnings
+from sklearn.mixture import GaussianMixture
+from vader.vadermodel import VaderModel
+
+class VADER:
+    &#39;&#39;&#39;
+        A VADER object represents a (recurrent) (variational) (Gaussian mixture) autoencoder
+    &#39;&#39;&#39;
+    def __init__(self, X_train, W_train=None, y_train=None, n_hidden=[12, 2], k=3, groups=None, output_activation=None,
+        batch_size = 32, learning_rate=1e-3, alpha=1.0, phi=None, cell_type=&#34;LSTM&#34;, recurrent=True,
+        save_path=None, eps=1e-10, seed=None, n_thread=0):
+        &#39;&#39;&#39;
+            Constructor for class VADER
+
+            Parameters
+            ----------
+            X_train : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables].
+            W_train : integer
+                Missingness indicator. Numpy array with same dimensions as X_train. Entries in X_train for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+            y_train : int
+                Cluster labels. Numpy array or list of length X_train.shape[0]. y_train is used purely for monitoring
+                performance when a ground truth clustering is available. It does not affect training, and can be omitted
+                 if no ground truth is available. (default: None)
+            n_hidden : int
+                The hidden layers. List of length &gt;= 1. Specification of the number of nodes in the hidden layers. For
+                example, specifying [a, b, c] will lead to an architecture with layer sizes a -&gt; b -&gt; c -&gt; b -&gt; a.
+                (default: [12, 2])
+            k : int
+                Number of mixture components. (default: 3)
+            groups : int
+                Grouping of the input variables as a list of length X.shape[2], with integers {0, 1, 2, ...} denoting
+                groups; used for weighting proportional to group size. (default: None)
+            output_activation : str
+                Output activation function, &#34;sigmoid&#34; for binary output, None for continuous output. (default: None)
+            batch_size : int
+                Batch size used for training. (default: 32)
+            learning_rate : float
+                Learning rate for training. (default: 1e-3)
+            alpha : float
+                Weight of the latent loss, relative to the reconstruction loss. (default: 1.0, i.e. equal weight)
+            phi : float
+                Initial values for the mixture component probabilities. List of length k. If None, then initialization
+                is according to a uniform distribution. (default: None)
+            cell_type : str
+                Cell type of the recurrent neural network. Currently only LSTM is supported. (default: &#34;LSTM&#34;)
+            recurrent : bool
+                Train a recurrent autoencoder, or a non-recurrent autoencoder? (default: True)
+            save_path : str
+                Location to store the Tensorflow checkpoint files. (default: os.path.join(&#39;vader&#39;, &#39;vader.ckpt&#39;))
+            eps : float
+                Small value used for numerical stability in logarithmic computations, divisions, etc. (default: 1e-10)
+            seed : int
+                Random seed, to be used for reproducibility. (default: None)
+            n_thread : int
+                Number of threads, passed to Tensorflow&#39;s intra_op_parallelism_threads and inter_op_parallelism_threads.
+                (default: 0)
+
+            Attributes
+            ----------
+            X : float
+                The data to be clustered. Numpy array.
+            W : int
+                Missingness indicator. Numpy array of same dimensions as X_train. Entries in X_train for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored.
+            y : int
+                Cluster labels. Numpy array or list of length X_train.shape[0]. y_train is used purely for monitoring
+                performance when a ground truth clustering is available. It does not affect training, and can be omitted
+                 if no ground truth is available.
+            n_hidden : int
+                The hidden layers. List of length &gt;= 1. Specification of the number of nodes in the hidden layers.
+            K : int
+                Number of mixture components.
+            groups: int
+                Grouping of the input variables as a list of length self.X.shape[2], with integers {0, 1, 2, ...}
+                denoting groups; used for weighting proportional to group size.
+            G : float
+                Weights determined by variable groups, as computed from the groups argument.
+            output_activation : str
+                Output activation function, &#34;sigmoid&#34; for binary output, None for continuous output.
+            batch_size : int
+                Batch size used for training.
+            learning_rate : float
+                Learning rate for training.
+            alpha : float
+                Weight of the latent loss, relative to the reconstruction loss.
+            cell_type : str
+                Cell type of the recurrent neural network. Currently only LSTM is supported.
+            recurrent : bool
+                Train a recurrent autoencoder, or a non-recurrent autoencoder?
+            save_path : str
+                Location to save the Tensorflow model.
+            eps : float
+                Small value used for numerical stability in logarithmic computations, divisions, etc.
+            seed : int
+                Random seed, to be used for reproducibility.
+            n_thread : int
+                Number of threads, passed to Tensorflow&#39;s intra_op_parallelism_threads and inter_op_parallelism_threads.
+            n_epoch : int
+                The number of epochs that this VADER object was trained.
+            loss : float
+                The current training loss of this VADER object.
+            n_param : int
+                The total number of parameters of this VADER object.
+            latent_loss : float
+                The current training latent loss of this VADER object.
+            reconstruction_loss : float
+                The current training reconstruction loss of this VADER object.
+            accuracy : float
+                If y_train is not none the current accuracy of this VADER object.
+            cluster_purity : float
+                If y_train is not none the current cluster purity of this VADER object.
+            gmm : dict
+                The current GMM in the latent space of the VaDER model.
+            D : int
+                self.X.shape[1]. The number of time points if self.recurrent is True, otherwise the number of variables.
+            G : float
+                Groups weights proportional to group sizes as specified in groups attribute.
+            I : integer
+                X_train.shape[2]. The number of variables if self.recurrent is True, otherwise not defined.
+            model :
+                The VaDER model
+            optimizer :
+                The optimizer used for training the model
+        &#39;&#39;&#39;
+
+        if seed is not None:
+            np.random.seed(seed)
+
+        # experiment: encode as np.array
+        self.D = np.array(X_train.shape[1], dtype=np.int32)  # dimensionality of input/output
+        self.X = X_train.astype(np.float32)
+        if W_train is not None:
+            self.W = W_train.astype(np.int32)
+        else:
+            self.W = np.ones(X_train.shape, np.int32)
+        if y_train is not None:
+            self.y = np.array(y_train, np.int32)
+        else:
+            self.y = None
+        self.save_path = save_path
+        self.eps = eps
+        self.alpha = alpha  # weight for the latent loss (alpha times the reconstruction loss weight)
+        self.learning_rate = learning_rate
+        self.K = k  # 10 number of mixture components (clusters)
+        if groups is not None:
+            self.groups = np.array(groups, np.int32)
+            self.G = 1 / np.bincount(groups)[groups]
+            self.G = self.G / sum(self.G)
+            self.G = np.broadcast_to(self.G, self.X.shape)
+        else:
+            self.groups = np.ones(X_train.shape[-1], np.int32)
+            self.G = np.ones(X_train.shape, dtype=np.float32)
+
+        self.n_hidden = n_hidden  # n_hidden[-1] is dimensions of the mixture distribution (size of hidden layer)
+        if output_activation is None:
+            self.output_activation = tf.identity
+        else:
+            if output_activation == &#34;sigmoid&#34;:
+                self.output_activation = tf.nn.sigmoid
+        self.n_hidden = n_hidden
+        self.seed = seed
+        self.n_epoch = 0
+        self.n_thread = n_thread
+        self.batch_size = batch_size
+        self.loss = np.array([])
+        self.reconstruction_loss = np.array([])
+        self.latent_loss = np.array([])
+        self.accuracy = np.array([])
+        self.cluster_purity = np.array([])
+        self.gmm = {&#39;mu&#39;: None, &#39;sigma2&#39;: None, &#39;phi&#39;: None}
+        self.n_param = None
+        self.cell_type = cell_type
+        self.recurrent = recurrent
+        # experiment: encode as np.array
+        if self.recurrent:
+            self.I = np.array(X_train.shape[2], dtype=np.int32)  # multivariate dimensions
+        else:
+            self.I = np.array(1, dtype=np.int32)
+
+        if self.seed is not None:
+            tf.random.set_seed(self.seed)
+
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate, beta_1=0.9, beta_2=0.999, name=&#34;optimizer&#34;)
+
+        self.model = VaderModel(
+            self.X, self.W, self.D, self.K, self.I, self.cell_type, self.n_hidden, self.recurrent,
+            self.output_activation)
+
+
+
+        # the state of the untrained model
+        self._update_state(self.model)
+        self.n_param = np.sum([np.product([xi for xi in x.shape]) for x in self.model.trainable_variables])
+
+        if self.save_path is not None:
+            tf.keras.models.save_model(self.model, self.save_path, save_format=&#34;tf&#34;)
+
+    def fit(self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None):
+        &#39;&#39;&#39;
+            Train a VADER object.
+
+            Parameters
+            ----------
+            n_epoch : int
+                Train n_epoch epochs. (default: 10)
+            learning_rate: float
+                Learning rate for this set of epochs (default: learning rate specified at object construction)
+                (NB: not currently used!)
+            verbose : bool
+                Print progress? (default: False)
+            exclude_variables: list of character
+                List of variables to exclude in computing the gradient
+
+            Returns
+            -------
+            0 if successful
+        &#39;&#39;&#39;
+
+        @tf.function
+        def train_step(X, W, G):
+            GW = G * tf.cast(W, dtype=G.dtype)
+            with tf.GradientTape() as tape:
+                x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X, W), training=True)
+                rec_loss = self._reconstruction_loss(
+                    X, x, x_raw, GW, self.output_activation, self.D, self.I, self.eps)
+                if self.alpha &gt; 0.0:
+                    lat_loss = self.alpha * self._latent_loss(
+                        z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+                else:
+                    lat_loss = tf.convert_to_tensor(value=0.0)  # non-variational
+                loss = rec_loss + lat_loss
+            gradients = tape.gradient(loss, self.model.trainable_variables)
+            self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        if verbose:
+            self._print_progress(self.model, -1)
+        for epoch in range(n_epoch):
+            n_batches = self.X.shape[0] // self.batch_size
+            for iteration in range(n_batches):
+                sys.stdout.flush()
+                X_batch, y_batch, W_batch, G_batch = self._get_batch(self.batch_size)
+                train_step(X_batch, W_batch, G_batch)
+            self._update_state(self.model)
+            self.n_epoch += 1
+            if verbose:
+                self._print_progress(self.model, self.n_epoch)
+        if self.save_path is not None:
+            tf.keras.models.save_model(self.model, self.save_path, save_format=&#34;tf&#34;)
+        return 0
+
+    def pre_fit(self, n_epoch=10, learning_rate=None, verbose=False):
+        &#39;&#39;&#39;
+            Pre-train a VADER object using only the latent loss, and initialize the Gaussian mixture parameters using
+            the resulting latent representation.
+
+            Parameters
+            ----------
+            n_epoch : int
+                Train n_epoch epochs. (default: 10)
+            learning_rate: float
+                Learning rate for this set of epochs(default: learning rate specified at object construction)
+                (NB: not currently used!)
+            verbose : bool
+                Print progress? (default: False)
+
+            Returns
+            -------
+            0 if successful
+        &#39;&#39;&#39;
+
+        # save the alpha
+        alpha = self.alpha
+        # pre-train using non-variational AEs
+        self.alpha = 0.0
+        # pre-train
+        ret = self.fit(n_epoch, learning_rate, verbose)
+
+        try:
+            # map to latent
+            z = self.map_to_latent(self.X, self.W, n_samp=10)
+            # fit GMM
+            gmm = GaussianMixture(n_components=self.K, covariance_type=&#34;diag&#34;, reg_covar=1e-04).fit(z)
+            # get GMM parameters
+            phi = np.log(gmm.weights_ + self.eps) # inverse softmax
+            mu = gmm.means_
+            sigma2 = np.log(np.exp(gmm.covariances_) - 1.0 + self.eps) # inverse softplus
+
+            # initialize mixture components
+            def my_get_variable(varname):
+                return [v for v in self.model.trainable_variables if v.name == varname][0]
+            mu_c_unscaled = my_get_variable(&#34;mu_c_unscaled:0&#34;)
+            mu_c_unscaled.assign(tf.convert_to_tensor(value=mu, dtype=tf.float32))
+            sigma2_c_unscaled = my_get_variable(&#34;sigma2_c_unscaled:0&#34;)
+            sigma2_c_unscaled.assign(tf.convert_to_tensor(value=sigma2, dtype=tf.float32))
+            phi_c_unscaled = my_get_variable(&#34;phi_c_unscaled:0&#34;)
+            phi_c_unscaled.assign(tf.convert_to_tensor(value=phi, dtype=tf.float32))
+        except:
+            warnings.warn(&#34;Failed to initialize VaDER with Gaussian mixture&#34;)
+        finally:
+            # restore the alpha
+            self.alpha = alpha
+        return ret
+
+    def _update_state(self, model):
+        X_batch, y_batch, W_batch, G_batch = self._get_batch(min(20 * self.batch_size, self.X.shape[0]))
+        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = model((X_batch, W_batch))
+        rec_loss = self._reconstruction_loss(
+            X_batch, x, x_raw, (G_batch * W_batch).astype(np.float32), self.output_activation, self.D, self.I, self.eps)
+        lat_loss = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+        loss = rec_loss + self.alpha * lat_loss
+        self.reconstruction_loss = np.append(self.reconstruction_loss, rec_loss)
+        self.latent_loss = np.append(self.latent_loss, lat_loss)
+        self.loss = np.append(self.loss, loss)
+        self.gmm[&#39;mu&#39;] = mu_c.numpy()
+        self.gmm[&#39;sigma2&#39;] = sigma2_c.numpy()
+        self.gmm[&#39;phi&#39;] = phi_c.numpy()
+        if y_batch is not None:
+            clusters = self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
+            acc, _ = self._accuracy(clusters, y_batch)
+            self.accuracy = np.append(self.accuracy, acc)
+            pur = self._cluster_purity(clusters, y_batch)
+            self.cluster_purity = np.append(self.cluster_purity, pur)
+
+    @tf.function
+    def _reconstruction_loss(self, X, x, x_raw, W, output_activation, D, I, eps=1e-10):
+        # reconstruction loss: E[log p(x|z)]
+        if (output_activation == tf.nn.sigmoid):
+            rec_loss = tf.compat.v1.losses.sigmoid_cross_entropy(tf.clip_by_value(X, eps, 1 - eps), x_raw, W)
+        else:
+            rec_loss = tf.compat.v1.losses.mean_squared_error(X, x, W)
+
+        # re-scale the loss to the original dims (making sure it balances correctly with the latent loss)
+        num = tf.cast(tf.reduce_prod(input_tensor=tf.shape(input=W)), rec_loss.dtype)
+        den = tf.cast(tf.reduce_sum(input_tensor=W), rec_loss.dtype)
+        rec_loss = rec_loss * num / den
+        rec_loss = rec_loss * tf.cast(D, dtype=rec_loss.dtype) * tf.cast(I, dtype=rec_loss.dtype)
+
+        return rec_loss
+
+    @tf.function
+    def _latent_loss(self, z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, K, eps=1e-10):
+        sigma2_tilde = tf.math.exp(log_sigma2_tilde)
+        log_sigma2_c = tf.math.log(eps + sigma2_c)
+        if K == 1:  # ordinary VAE
+            latent_loss = tf.reduce_mean(input_tensor=0.5 * tf.reduce_sum(
+                input_tensor=sigma2_tilde + tf.square(mu_tilde) - 1 - log_sigma2_tilde,
+                axis=1
+            ))
+        else:
+            log_2pi = tf.math.log(2 * np.pi)
+            log_phi_c = tf.math.log(eps + phi_c)
+            def log_pdf(z):
+                def f(i):
+                    return - 0.5 * (log_sigma2_c[i] + log_2pi + tf.math.square(z - mu_c[i]) / sigma2_c[i])
+                    # return - tf.square(z - mu[i]) / 2.0 / (eps + sigma2[i]) - tf.math.log(
+                    #     eps + 2.0 * np.pi * sigma2[i]) / 2.0
+                return tf.transpose(a=tf.map_fn(f, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+
+            log_p = log_phi_c + tf.reduce_sum(input_tensor=log_pdf(z), axis=2)
+            lse_p = tf.reduce_logsumexp(input_tensor=log_p, keepdims=True, axis=1)
+            log_gamma_c = log_p - lse_p
+
+            gamma_c = tf.exp(log_gamma_c)
+
+            # latent loss: E[log p(z|c) + log p(c) - log q(z|x) - log q(c|x)]
+            term1 = tf.math.log(eps + sigma2_c)
+            f2 = lambda i: sigma2_tilde / (eps + sigma2_c[i])
+            term2 = tf.transpose(a=tf.map_fn(f2, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            f3 = lambda i: tf.square(mu_tilde - mu_c[i]) / (eps + sigma2_c[i])
+            term3 = tf.transpose(a=tf.map_fn(f3, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+
+            latent_loss1 = 0.5 * tf.reduce_sum(
+                input_tensor=gamma_c * tf.reduce_sum(input_tensor=term1 + term2 + term3, axis=2), axis=1)
+            # latent_loss2 = - tf.reduce_sum(gamma_c * tf.log(eps + phi_c / (eps + gamma_c)), axis=1)
+            latent_loss2 = - tf.reduce_sum(input_tensor=gamma_c * (log_phi_c - log_gamma_c), axis=1)
+            latent_loss3 = - 0.5 * tf.reduce_sum(input_tensor=1 + log_sigma2_tilde, axis=1)
+            # average across the samples
+            latent_loss1 = tf.reduce_mean(input_tensor=latent_loss1)
+            latent_loss2 = tf.reduce_mean(input_tensor=latent_loss2)
+            latent_loss3 = tf.reduce_mean(input_tensor=latent_loss3)
+            # add the different terms
+            latent_loss = latent_loss1 + latent_loss2 + latent_loss3
+        return latent_loss
+
+    def _cluster(self, mu_t, mu, sigma2, phi):
+        def f(mu_t, mu, sigma2, phi):
+            # the covariance matrix is diagonal, so we can just take the product
+            return np.log(self.eps + phi) + np.log(self.eps + multivariate_normal.pdf(mu_t, mean=mu, cov=np.diag(sigma2)))
+        p = np.array([f(mu_t, mu[i], sigma2[i], phi[i]) for i in np.arange(mu.shape[0])])
+        return np.argmax(p, axis=0)
+
+    def _cluster_purity(self, y_pred, y_true):
+        tab = metrics.cluster.contingency_matrix(y_true, y_pred)
+        return np.sum(np.amax(tab, axis=0)) / np.sum(tab)
+
+    def _accuracy(self, y_pred, y_true):
+        def cluster_acc(Y_pred, Y):
+            assert Y_pred.size == Y.size
+            D = max(Y_pred.max(), Y.max()) + 1
+            w = np.zeros((D, D), dtype=np.int32)
+            for i in range(Y_pred.size):
+                w[Y_pred[i], Y[i]] += 1
+            ind = np.transpose(np.asarray(linear_assignment(w.max() - w)))
+            return sum([w[i, j] for i, j in ind]) * 1.0 / Y_pred.size, np.array(w)
+
+        y_pred = np.array(y_pred, np.int32)
+        y_true = np.array(y_true, np.int32)
+        return cluster_acc(y_pred, y_true)
+
+    def _get_batch(self, batch_size):
+        ii = np.random.choice(np.arange(self.X.shape[0]), batch_size, replace=False)
+        X_batch = self.X[ii,]
+        if self.y is not None:
+            y_batch = self.y[ii]
+        else:
+            y_batch = None
+        W_batch = self.W[ii,]
+        G_batch = self.G[ii,]
+        return X_batch, y_batch, W_batch, G_batch
+
+    def _print_progress(self, model, epoch=-1):
+        if self.y is not None:
+            print(epoch,
+                  &#34;tot_loss:&#34;, &#34;%.2f&#34; % round(self.loss[-1], 2),
+                  &#34;\trec_loss:&#34;, &#34;%.2f&#34; % round(self.reconstruction_loss[-1], 2),
+                  &#34;\tlat_loss:&#34;, &#34;%.2f&#34; % round(self.latent_loss[-1], 2),
+                  &#34;\tacc:&#34;, &#34;%.2f&#34; % round(self.accuracy[-1], 2),
+                  &#34;\tpur:&#34;, &#34;%.2f&#34; % round(self.cluster_purity[-1], 2),
+                  flush=True
+                  )
+        else:
+            print(epoch,
+                  &#34;tot_loss:&#34;, &#34;%.2f&#34; % round(self.loss[-1], 2),
+                  &#34;\trec_loss:&#34;, &#34;%.2f&#34; % round(self.reconstruction_loss[-1], 2),
+                  &#34;\tlat_loss:&#34;, &#34;%.2f&#34; % round(self.latent_loss[-1], 2),
+                  flush=True
+                  )
+        return 0
+
+    def map_to_latent(self, X_c, W_c=None, n_samp=1):
+        &#39;&#39;&#39;
+            Map an input to its latent representation.
+
+            Parameters
+            ----------
+            X_c : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables]
+            W_c : int
+                Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+            n_samp : int
+                The number of latent samples to take for each input sample. (default: 1)
+
+            Returns
+            -------
+            numpy array containing the latent representations.
+        &#39;&#39;&#39;
+        if W_c is None:
+            W_c = np.ones(X_c.shape, dtype=np.float32)
+        return np.concatenate([self.model((X_c, W_c))[5] for i in np.arange(n_samp)], axis=0)
+
+    def get_loss(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
+        &#39;&#39;&#39;
+            Calculate the loss for specific input data.
+
+            Parameters
+            ----------
+            X_c : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables]
+            W_c : int
+                Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+
+            Returns
+            -------
+            Dictionary with two components, &#34;reconstruction_loss&#34; and &#34;latent_loss&#34;.
+        &#39;&#39;&#39;
+        if W_c is None:
+            W_c = np.ones(X_c.shape, dtype=np.float32)
+
+        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
+
+        G_c = 1 / np.bincount(self.groups)[self.groups]
+        G_c = G_c / sum(G_c)
+        G_c = np.broadcast_to(G_c, X_c.shape)
+
+        reconstruction_loss_val = self._reconstruction_loss(
+            X_c, x, x_raw, G_c * W_c, self.output_activation, self.D, self.I, self.eps).numpy
+        latent_loss_val = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps).numpy
+        return {&#34;reconstruction_loss&#34;: reconstruction_loss_val, &#34;latent_loss&#34;: latent_loss_val}
+
+    def get_imputation_matrix(self):
+        &#39;&#39;&#39;
+            Returns
+            -------
+            The imputation matrix.
+        &#39;&#39;&#39;
+        return self.model.imputation_layer.A
+
+    def cluster(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
+        &#39;&#39;&#39;
+            Cluster input data using this VADER object.
+
+            Parameters
+            ----------
+            X_c : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables]
+            W_c : int
+                Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+
+            Returns
+            -------
+            Clusters encoded as integers.
+        &#39;&#39;&#39;
+        if W_c is None:
+            W_c = np.ones(X_c.shape)
+        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
+
+        return self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
+
+    def get_cluster_means(self):
+        &#39;&#39;&#39;
+            Get the cluster averages represented by this VADER object. Technically, this maps the latent Gaussian
+            mixture means to output values using this VADER object.
+
+            Returns
+            -------
+            Cluster averages.
+        &#39;&#39;&#39;
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        clusters = self.model.decode(self.gmm[&#39;mu_c&#39;])
+        return clusters.numpy()
+
+    def generate(self, n):
+        &#39;&#39;&#39;
+            Generate random samples from this VADER object.
+
+            n : int
+                The number of samples to generate.
+
+            Returns
+            -------
+            A dictionary with two components, &#34;clusters&#34; (cluster indicator) and &#34;samples&#34; (the random samples).
+        &#39;&#39;&#39;
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        if self.recurrent:
+            gen = np.zeros((n, self.D, self.I), dtype=np.float)
+        else:
+            gen = np.zeros((n, self.D), dtype=np.float)
+        c = np.random.choice(np.arange(self.K), size=n, p=self.gmm[&#39;phi&#39;])
+        for k in np.arange(self.K):
+            ii = np.flatnonzero(c == k)
+            z_rnd = \
+                self.gmm[&#39;mu&#39;][None, k, :] + \
+                np.sqrt(self.gmm[&#39;sigma2&#39;])[None, k, :] * \
+                np.random.normal(size=[ii.shape[0], self.n_hidden[-1]])
+            if self.recurrent:
+                gen[ii,:,:] = self.model.decode(z_rnd)[0].numpy()
+            else:
+                gen[ii,:] = self.model.decode(z_rnd)[0].numpy()
+        gen = {
+            &#34;clusters&#34;: c,
+            &#34;samples&#34;: gen
+        }
+        return gen
+
+    def predict(self, X_test, W_test=None):
+        &#39;&#39;&#39;
+            Map input data to output (i.e. reconstructed input).
+
+            Parameters
+            ----------
+            X_test : float numpy array
+                The input data to be mapped.
+            W_test : integer numpy array of same dimensions as X_test
+                Missingness indicator. Entries in X_test for which the corresponding entry in W_test equals 0 are
+                treated as missing. More precisely, their specific numeric value is completely ignored.
+
+            Returns
+            -------
+            numpy array with reconstructed input (i.e. the autoencoder output).
+        &#39;&#39;&#39;
+
+        if W_test is None:
+            W_test = np.ones(X_test.shape)
+
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        return self.model((X_test, W_test))[0].numpy()
+
+
+if __name__ == &#39;__main__&#39;:
+    pass</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="vader.vader.VADER"><code class="flex name class">
+<span>class <span class="ident">VADER</span></span>
+<span>(</span><span>X_train, W_train=None, y_train=None, n_hidden=[12, 2], k=3, groups=None, output_activation=None, batch_size=32, learning_rate=0.001, alpha=1.0, phi=None, cell_type='LSTM', recurrent=True, save_path=None, eps=1e-10, seed=None, n_thread=0)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A VADER object represents a (recurrent) (variational) (Gaussian mixture) autoencoder</p>
+<p>Constructor for class VADER</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X_train</code></strong> :&ensp;<code>float</code></dt>
+<dd>The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+True, else [samples, variables].</dd>
+<dt><strong><code>W_train</code></strong> :&ensp;<code>integer</code></dt>
+<dd>Missingness indicator. Numpy array with same dimensions as X_train. Entries in X_train for which the
+corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+value is completely ignored. If None, then no missingness is assumed. (default: None)</dd>
+<dt><strong><code>y_train</code></strong> :&ensp;<code>int</code></dt>
+<dd>Cluster labels. Numpy array or list of length X_train.shape[0]. y_train is used purely for monitoring
+performance when a ground truth clustering is available. It does not affect training, and can be omitted
+if no ground truth is available. (default: None)</dd>
+<dt><strong><code>n_hidden</code></strong> :&ensp;<code>int</code></dt>
+<dd>The hidden layers. List of length &gt;= 1. Specification of the number of nodes in the hidden layers. For
+example, specifying [a, b, c] will lead to an architecture with layer sizes a -&gt; b -&gt; c -&gt; b -&gt; a.
+(default: [12, 2])</dd>
+<dt><strong><code>k</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of mixture components. (default: 3)</dd>
+<dt><strong><code>groups</code></strong> :&ensp;<code>int</code></dt>
+<dd>Grouping of the input variables as a list of length X.shape[2], with integers {0, 1, 2, &hellip;} denoting
+groups; used for weighting proportional to group size. (default: None)</dd>
+<dt><strong><code>output_activation</code></strong> :&ensp;<code>str</code></dt>
+<dd>Output activation function, "sigmoid" for binary output, None for continuous output. (default: None)</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Batch size used for training. (default: 32)</dd>
+<dt><strong><code>learning_rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>Learning rate for training. (default: 1e-3)</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float</code></dt>
+<dd>Weight of the latent loss, relative to the reconstruction loss. (default: 1.0, i.e. equal weight)</dd>
+<dt><strong><code>phi</code></strong> :&ensp;<code>float</code></dt>
+<dd>Initial values for the mixture component probabilities. List of length k. If None, then initialization
+is according to a uniform distribution. (default: None)</dd>
+<dt><strong><code>cell_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>Cell type of the recurrent neural network. Currently only LSTM is supported. (default: "LSTM")</dd>
+<dt><strong><code>recurrent</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Train a recurrent autoencoder, or a non-recurrent autoencoder? (default: True)</dd>
+<dt><strong><code>save_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Location to store the Tensorflow checkpoint files. (default: os.path.join('vader', 'vader.ckpt'))</dd>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dd>Small value used for numerical stability in logarithmic computations, divisions, etc. (default: 1e-10)</dd>
+<dt><strong><code>seed</code></strong> :&ensp;<code>int</code></dt>
+<dd>Random seed, to be used for reproducibility. (default: None)</dd>
+<dt><strong><code>n_thread</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of threads, passed to Tensorflow's intra_op_parallelism_threads and inter_op_parallelism_threads.
+(default: 0)</dd>
+</dl>
+<h2 id="attributes">Attributes</h2>
+<dl>
+<dt><strong><code>X</code></strong> :&ensp;<code>float</code></dt>
+<dd>The data to be clustered. Numpy array.</dd>
+<dt><strong><code>W</code></strong> :&ensp;<code>int</code></dt>
+<dd>Missingness indicator. Numpy array of same dimensions as X_train. Entries in X_train for which the
+corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+value is completely ignored.</dd>
+<dt><strong><code>y</code></strong> :&ensp;<code>int</code></dt>
+<dd>Cluster labels. Numpy array or list of length X_train.shape[0]. y_train is used purely for monitoring
+performance when a ground truth clustering is available. It does not affect training, and can be omitted
+if no ground truth is available.</dd>
+<dt><strong><code>n_hidden</code></strong> :&ensp;<code>int</code></dt>
+<dd>The hidden layers. List of length &gt;= 1. Specification of the number of nodes in the hidden layers.</dd>
+<dt><strong><code>K</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of mixture components.</dd>
+<dt><strong><code>groups</code></strong> :&ensp;<code>int</code></dt>
+<dd>Grouping of the input variables as a list of length self.X.shape[2], with integers {0, 1, 2, &hellip;}
+denoting groups; used for weighting proportional to group size.</dd>
+<dt><strong><code>G</code></strong> :&ensp;<code>float</code></dt>
+<dd>Weights determined by variable groups, as computed from the groups argument.</dd>
+<dt><strong><code>output_activation</code></strong> :&ensp;<code>str</code></dt>
+<dd>Output activation function, "sigmoid" for binary output, None for continuous output.</dd>
+<dt><strong><code>batch_size</code></strong> :&ensp;<code>int</code></dt>
+<dd>Batch size used for training.</dd>
+<dt><strong><code>learning_rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>Learning rate for training.</dd>
+<dt><strong><code>alpha</code></strong> :&ensp;<code>float</code></dt>
+<dd>Weight of the latent loss, relative to the reconstruction loss.</dd>
+<dt><strong><code>cell_type</code></strong> :&ensp;<code>str</code></dt>
+<dd>Cell type of the recurrent neural network. Currently only LSTM is supported.</dd>
+<dt><strong><code>recurrent</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Train a recurrent autoencoder, or a non-recurrent autoencoder?</dd>
+<dt><strong><code>save_path</code></strong> :&ensp;<code>str</code></dt>
+<dd>Location to save the Tensorflow model.</dd>
+<dt><strong><code>eps</code></strong> :&ensp;<code>float</code></dt>
+<dd>Small value used for numerical stability in logarithmic computations, divisions, etc.</dd>
+<dt><strong><code>seed</code></strong> :&ensp;<code>int</code></dt>
+<dd>Random seed, to be used for reproducibility.</dd>
+<dt><strong><code>n_thread</code></strong> :&ensp;<code>int</code></dt>
+<dd>Number of threads, passed to Tensorflow's intra_op_parallelism_threads and inter_op_parallelism_threads.</dd>
+<dt><strong><code>n_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of epochs that this VADER object was trained.</dd>
+<dt><strong><code>loss</code></strong> :&ensp;<code>float</code></dt>
+<dd>The current training loss of this VADER object.</dd>
+<dt><strong><code>n_param</code></strong> :&ensp;<code>int</code></dt>
+<dd>The total number of parameters of this VADER object.</dd>
+<dt><strong><code>latent_loss</code></strong> :&ensp;<code>float</code></dt>
+<dd>The current training latent loss of this VADER object.</dd>
+<dt><strong><code>reconstruction_loss</code></strong> :&ensp;<code>float</code></dt>
+<dd>The current training reconstruction loss of this VADER object.</dd>
+<dt><strong><code>accuracy</code></strong> :&ensp;<code>float</code></dt>
+<dd>If y_train is not none the current accuracy of this VADER object.</dd>
+<dt><strong><code>cluster_purity</code></strong> :&ensp;<code>float</code></dt>
+<dd>If y_train is not none the current cluster purity of this VADER object.</dd>
+<dt><strong><code>gmm</code></strong> :&ensp;<code>dict</code></dt>
+<dd>The current GMM in the latent space of the VaDER model.</dd>
+<dt><strong><code>D</code></strong> :&ensp;<code>int</code></dt>
+<dd>self.X.shape[1]. The number of time points if self.recurrent is True, otherwise the number of variables.</dd>
+<dt><strong><code>G</code></strong> :&ensp;<code>float</code></dt>
+<dd>Groups weights proportional to group sizes as specified in groups attribute.</dd>
+<dt><strong><code>I</code></strong> :&ensp;<code>integer</code></dt>
+<dd>X_train.shape[2]. The number of variables if self.recurrent is True, otherwise not defined.</dd>
+</dl>
+<p>model :
+The VaDER model
+optimizer :
+The optimizer used for training the model</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class VADER:
+    &#39;&#39;&#39;
+        A VADER object represents a (recurrent) (variational) (Gaussian mixture) autoencoder
+    &#39;&#39;&#39;
+    def __init__(self, X_train, W_train=None, y_train=None, n_hidden=[12, 2], k=3, groups=None, output_activation=None,
+        batch_size = 32, learning_rate=1e-3, alpha=1.0, phi=None, cell_type=&#34;LSTM&#34;, recurrent=True,
+        save_path=None, eps=1e-10, seed=None, n_thread=0):
+        &#39;&#39;&#39;
+            Constructor for class VADER
+
+            Parameters
+            ----------
+            X_train : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables].
+            W_train : integer
+                Missingness indicator. Numpy array with same dimensions as X_train. Entries in X_train for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+            y_train : int
+                Cluster labels. Numpy array or list of length X_train.shape[0]. y_train is used purely for monitoring
+                performance when a ground truth clustering is available. It does not affect training, and can be omitted
+                 if no ground truth is available. (default: None)
+            n_hidden : int
+                The hidden layers. List of length &gt;= 1. Specification of the number of nodes in the hidden layers. For
+                example, specifying [a, b, c] will lead to an architecture with layer sizes a -&gt; b -&gt; c -&gt; b -&gt; a.
+                (default: [12, 2])
+            k : int
+                Number of mixture components. (default: 3)
+            groups : int
+                Grouping of the input variables as a list of length X.shape[2], with integers {0, 1, 2, ...} denoting
+                groups; used for weighting proportional to group size. (default: None)
+            output_activation : str
+                Output activation function, &#34;sigmoid&#34; for binary output, None for continuous output. (default: None)
+            batch_size : int
+                Batch size used for training. (default: 32)
+            learning_rate : float
+                Learning rate for training. (default: 1e-3)
+            alpha : float
+                Weight of the latent loss, relative to the reconstruction loss. (default: 1.0, i.e. equal weight)
+            phi : float
+                Initial values for the mixture component probabilities. List of length k. If None, then initialization
+                is according to a uniform distribution. (default: None)
+            cell_type : str
+                Cell type of the recurrent neural network. Currently only LSTM is supported. (default: &#34;LSTM&#34;)
+            recurrent : bool
+                Train a recurrent autoencoder, or a non-recurrent autoencoder? (default: True)
+            save_path : str
+                Location to store the Tensorflow checkpoint files. (default: os.path.join(&#39;vader&#39;, &#39;vader.ckpt&#39;))
+            eps : float
+                Small value used for numerical stability in logarithmic computations, divisions, etc. (default: 1e-10)
+            seed : int
+                Random seed, to be used for reproducibility. (default: None)
+            n_thread : int
+                Number of threads, passed to Tensorflow&#39;s intra_op_parallelism_threads and inter_op_parallelism_threads.
+                (default: 0)
+
+            Attributes
+            ----------
+            X : float
+                The data to be clustered. Numpy array.
+            W : int
+                Missingness indicator. Numpy array of same dimensions as X_train. Entries in X_train for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored.
+            y : int
+                Cluster labels. Numpy array or list of length X_train.shape[0]. y_train is used purely for monitoring
+                performance when a ground truth clustering is available. It does not affect training, and can be omitted
+                 if no ground truth is available.
+            n_hidden : int
+                The hidden layers. List of length &gt;= 1. Specification of the number of nodes in the hidden layers.
+            K : int
+                Number of mixture components.
+            groups: int
+                Grouping of the input variables as a list of length self.X.shape[2], with integers {0, 1, 2, ...}
+                denoting groups; used for weighting proportional to group size.
+            G : float
+                Weights determined by variable groups, as computed from the groups argument.
+            output_activation : str
+                Output activation function, &#34;sigmoid&#34; for binary output, None for continuous output.
+            batch_size : int
+                Batch size used for training.
+            learning_rate : float
+                Learning rate for training.
+            alpha : float
+                Weight of the latent loss, relative to the reconstruction loss.
+            cell_type : str
+                Cell type of the recurrent neural network. Currently only LSTM is supported.
+            recurrent : bool
+                Train a recurrent autoencoder, or a non-recurrent autoencoder?
+            save_path : str
+                Location to save the Tensorflow model.
+            eps : float
+                Small value used for numerical stability in logarithmic computations, divisions, etc.
+            seed : int
+                Random seed, to be used for reproducibility.
+            n_thread : int
+                Number of threads, passed to Tensorflow&#39;s intra_op_parallelism_threads and inter_op_parallelism_threads.
+            n_epoch : int
+                The number of epochs that this VADER object was trained.
+            loss : float
+                The current training loss of this VADER object.
+            n_param : int
+                The total number of parameters of this VADER object.
+            latent_loss : float
+                The current training latent loss of this VADER object.
+            reconstruction_loss : float
+                The current training reconstruction loss of this VADER object.
+            accuracy : float
+                If y_train is not none the current accuracy of this VADER object.
+            cluster_purity : float
+                If y_train is not none the current cluster purity of this VADER object.
+            gmm : dict
+                The current GMM in the latent space of the VaDER model.
+            D : int
+                self.X.shape[1]. The number of time points if self.recurrent is True, otherwise the number of variables.
+            G : float
+                Groups weights proportional to group sizes as specified in groups attribute.
+            I : integer
+                X_train.shape[2]. The number of variables if self.recurrent is True, otherwise not defined.
+            model :
+                The VaDER model
+            optimizer :
+                The optimizer used for training the model
+        &#39;&#39;&#39;
+
+        if seed is not None:
+            np.random.seed(seed)
+
+        # experiment: encode as np.array
+        self.D = np.array(X_train.shape[1], dtype=np.int32)  # dimensionality of input/output
+        self.X = X_train.astype(np.float32)
+        if W_train is not None:
+            self.W = W_train.astype(np.int32)
+        else:
+            self.W = np.ones(X_train.shape, np.int32)
+        if y_train is not None:
+            self.y = np.array(y_train, np.int32)
+        else:
+            self.y = None
+        self.save_path = save_path
+        self.eps = eps
+        self.alpha = alpha  # weight for the latent loss (alpha times the reconstruction loss weight)
+        self.learning_rate = learning_rate
+        self.K = k  # 10 number of mixture components (clusters)
+        if groups is not None:
+            self.groups = np.array(groups, np.int32)
+            self.G = 1 / np.bincount(groups)[groups]
+            self.G = self.G / sum(self.G)
+            self.G = np.broadcast_to(self.G, self.X.shape)
+        else:
+            self.groups = np.ones(X_train.shape[-1], np.int32)
+            self.G = np.ones(X_train.shape, dtype=np.float32)
+
+        self.n_hidden = n_hidden  # n_hidden[-1] is dimensions of the mixture distribution (size of hidden layer)
+        if output_activation is None:
+            self.output_activation = tf.identity
+        else:
+            if output_activation == &#34;sigmoid&#34;:
+                self.output_activation = tf.nn.sigmoid
+        self.n_hidden = n_hidden
+        self.seed = seed
+        self.n_epoch = 0
+        self.n_thread = n_thread
+        self.batch_size = batch_size
+        self.loss = np.array([])
+        self.reconstruction_loss = np.array([])
+        self.latent_loss = np.array([])
+        self.accuracy = np.array([])
+        self.cluster_purity = np.array([])
+        self.gmm = {&#39;mu&#39;: None, &#39;sigma2&#39;: None, &#39;phi&#39;: None}
+        self.n_param = None
+        self.cell_type = cell_type
+        self.recurrent = recurrent
+        # experiment: encode as np.array
+        if self.recurrent:
+            self.I = np.array(X_train.shape[2], dtype=np.int32)  # multivariate dimensions
+        else:
+            self.I = np.array(1, dtype=np.int32)
+
+        if self.seed is not None:
+            tf.random.set_seed(self.seed)
+
+        self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate, beta_1=0.9, beta_2=0.999, name=&#34;optimizer&#34;)
+
+        self.model = VaderModel(
+            self.X, self.W, self.D, self.K, self.I, self.cell_type, self.n_hidden, self.recurrent,
+            self.output_activation)
+
+
+
+        # the state of the untrained model
+        self._update_state(self.model)
+        self.n_param = np.sum([np.product([xi for xi in x.shape]) for x in self.model.trainable_variables])
+
+        if self.save_path is not None:
+            tf.keras.models.save_model(self.model, self.save_path, save_format=&#34;tf&#34;)
+
+    def fit(self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None):
+        &#39;&#39;&#39;
+            Train a VADER object.
+
+            Parameters
+            ----------
+            n_epoch : int
+                Train n_epoch epochs. (default: 10)
+            learning_rate: float
+                Learning rate for this set of epochs (default: learning rate specified at object construction)
+                (NB: not currently used!)
+            verbose : bool
+                Print progress? (default: False)
+            exclude_variables: list of character
+                List of variables to exclude in computing the gradient
+
+            Returns
+            -------
+            0 if successful
+        &#39;&#39;&#39;
+
+        @tf.function
+        def train_step(X, W, G):
+            GW = G * tf.cast(W, dtype=G.dtype)
+            with tf.GradientTape() as tape:
+                x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X, W), training=True)
+                rec_loss = self._reconstruction_loss(
+                    X, x, x_raw, GW, self.output_activation, self.D, self.I, self.eps)
+                if self.alpha &gt; 0.0:
+                    lat_loss = self.alpha * self._latent_loss(
+                        z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+                else:
+                    lat_loss = tf.convert_to_tensor(value=0.0)  # non-variational
+                loss = rec_loss + lat_loss
+            gradients = tape.gradient(loss, self.model.trainable_variables)
+            self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        if verbose:
+            self._print_progress(self.model, -1)
+        for epoch in range(n_epoch):
+            n_batches = self.X.shape[0] // self.batch_size
+            for iteration in range(n_batches):
+                sys.stdout.flush()
+                X_batch, y_batch, W_batch, G_batch = self._get_batch(self.batch_size)
+                train_step(X_batch, W_batch, G_batch)
+            self._update_state(self.model)
+            self.n_epoch += 1
+            if verbose:
+                self._print_progress(self.model, self.n_epoch)
+        if self.save_path is not None:
+            tf.keras.models.save_model(self.model, self.save_path, save_format=&#34;tf&#34;)
+        return 0
+
+    def pre_fit(self, n_epoch=10, learning_rate=None, verbose=False):
+        &#39;&#39;&#39;
+            Pre-train a VADER object using only the latent loss, and initialize the Gaussian mixture parameters using
+            the resulting latent representation.
+
+            Parameters
+            ----------
+            n_epoch : int
+                Train n_epoch epochs. (default: 10)
+            learning_rate: float
+                Learning rate for this set of epochs(default: learning rate specified at object construction)
+                (NB: not currently used!)
+            verbose : bool
+                Print progress? (default: False)
+
+            Returns
+            -------
+            0 if successful
+        &#39;&#39;&#39;
+
+        # save the alpha
+        alpha = self.alpha
+        # pre-train using non-variational AEs
+        self.alpha = 0.0
+        # pre-train
+        ret = self.fit(n_epoch, learning_rate, verbose)
+
+        try:
+            # map to latent
+            z = self.map_to_latent(self.X, self.W, n_samp=10)
+            # fit GMM
+            gmm = GaussianMixture(n_components=self.K, covariance_type=&#34;diag&#34;, reg_covar=1e-04).fit(z)
+            # get GMM parameters
+            phi = np.log(gmm.weights_ + self.eps) # inverse softmax
+            mu = gmm.means_
+            sigma2 = np.log(np.exp(gmm.covariances_) - 1.0 + self.eps) # inverse softplus
+
+            # initialize mixture components
+            def my_get_variable(varname):
+                return [v for v in self.model.trainable_variables if v.name == varname][0]
+            mu_c_unscaled = my_get_variable(&#34;mu_c_unscaled:0&#34;)
+            mu_c_unscaled.assign(tf.convert_to_tensor(value=mu, dtype=tf.float32))
+            sigma2_c_unscaled = my_get_variable(&#34;sigma2_c_unscaled:0&#34;)
+            sigma2_c_unscaled.assign(tf.convert_to_tensor(value=sigma2, dtype=tf.float32))
+            phi_c_unscaled = my_get_variable(&#34;phi_c_unscaled:0&#34;)
+            phi_c_unscaled.assign(tf.convert_to_tensor(value=phi, dtype=tf.float32))
+        except:
+            warnings.warn(&#34;Failed to initialize VaDER with Gaussian mixture&#34;)
+        finally:
+            # restore the alpha
+            self.alpha = alpha
+        return ret
+
+    def _update_state(self, model):
+        X_batch, y_batch, W_batch, G_batch = self._get_batch(min(20 * self.batch_size, self.X.shape[0]))
+        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = model((X_batch, W_batch))
+        rec_loss = self._reconstruction_loss(
+            X_batch, x, x_raw, (G_batch * W_batch).astype(np.float32), self.output_activation, self.D, self.I, self.eps)
+        lat_loss = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+        loss = rec_loss + self.alpha * lat_loss
+        self.reconstruction_loss = np.append(self.reconstruction_loss, rec_loss)
+        self.latent_loss = np.append(self.latent_loss, lat_loss)
+        self.loss = np.append(self.loss, loss)
+        self.gmm[&#39;mu&#39;] = mu_c.numpy()
+        self.gmm[&#39;sigma2&#39;] = sigma2_c.numpy()
+        self.gmm[&#39;phi&#39;] = phi_c.numpy()
+        if y_batch is not None:
+            clusters = self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
+            acc, _ = self._accuracy(clusters, y_batch)
+            self.accuracy = np.append(self.accuracy, acc)
+            pur = self._cluster_purity(clusters, y_batch)
+            self.cluster_purity = np.append(self.cluster_purity, pur)
+
+    @tf.function
+    def _reconstruction_loss(self, X, x, x_raw, W, output_activation, D, I, eps=1e-10):
+        # reconstruction loss: E[log p(x|z)]
+        if (output_activation == tf.nn.sigmoid):
+            rec_loss = tf.compat.v1.losses.sigmoid_cross_entropy(tf.clip_by_value(X, eps, 1 - eps), x_raw, W)
+        else:
+            rec_loss = tf.compat.v1.losses.mean_squared_error(X, x, W)
+
+        # re-scale the loss to the original dims (making sure it balances correctly with the latent loss)
+        num = tf.cast(tf.reduce_prod(input_tensor=tf.shape(input=W)), rec_loss.dtype)
+        den = tf.cast(tf.reduce_sum(input_tensor=W), rec_loss.dtype)
+        rec_loss = rec_loss * num / den
+        rec_loss = rec_loss * tf.cast(D, dtype=rec_loss.dtype) * tf.cast(I, dtype=rec_loss.dtype)
+
+        return rec_loss
+
+    @tf.function
+    def _latent_loss(self, z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, K, eps=1e-10):
+        sigma2_tilde = tf.math.exp(log_sigma2_tilde)
+        log_sigma2_c = tf.math.log(eps + sigma2_c)
+        if K == 1:  # ordinary VAE
+            latent_loss = tf.reduce_mean(input_tensor=0.5 * tf.reduce_sum(
+                input_tensor=sigma2_tilde + tf.square(mu_tilde) - 1 - log_sigma2_tilde,
+                axis=1
+            ))
+        else:
+            log_2pi = tf.math.log(2 * np.pi)
+            log_phi_c = tf.math.log(eps + phi_c)
+            def log_pdf(z):
+                def f(i):
+                    return - 0.5 * (log_sigma2_c[i] + log_2pi + tf.math.square(z - mu_c[i]) / sigma2_c[i])
+                    # return - tf.square(z - mu[i]) / 2.0 / (eps + sigma2[i]) - tf.math.log(
+                    #     eps + 2.0 * np.pi * sigma2[i]) / 2.0
+                return tf.transpose(a=tf.map_fn(f, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+
+            log_p = log_phi_c + tf.reduce_sum(input_tensor=log_pdf(z), axis=2)
+            lse_p = tf.reduce_logsumexp(input_tensor=log_p, keepdims=True, axis=1)
+            log_gamma_c = log_p - lse_p
+
+            gamma_c = tf.exp(log_gamma_c)
+
+            # latent loss: E[log p(z|c) + log p(c) - log q(z|x) - log q(c|x)]
+            term1 = tf.math.log(eps + sigma2_c)
+            f2 = lambda i: sigma2_tilde / (eps + sigma2_c[i])
+            term2 = tf.transpose(a=tf.map_fn(f2, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            f3 = lambda i: tf.square(mu_tilde - mu_c[i]) / (eps + sigma2_c[i])
+            term3 = tf.transpose(a=tf.map_fn(f3, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+
+            latent_loss1 = 0.5 * tf.reduce_sum(
+                input_tensor=gamma_c * tf.reduce_sum(input_tensor=term1 + term2 + term3, axis=2), axis=1)
+            # latent_loss2 = - tf.reduce_sum(gamma_c * tf.log(eps + phi_c / (eps + gamma_c)), axis=1)
+            latent_loss2 = - tf.reduce_sum(input_tensor=gamma_c * (log_phi_c - log_gamma_c), axis=1)
+            latent_loss3 = - 0.5 * tf.reduce_sum(input_tensor=1 + log_sigma2_tilde, axis=1)
+            # average across the samples
+            latent_loss1 = tf.reduce_mean(input_tensor=latent_loss1)
+            latent_loss2 = tf.reduce_mean(input_tensor=latent_loss2)
+            latent_loss3 = tf.reduce_mean(input_tensor=latent_loss3)
+            # add the different terms
+            latent_loss = latent_loss1 + latent_loss2 + latent_loss3
+        return latent_loss
+
+    def _cluster(self, mu_t, mu, sigma2, phi):
+        def f(mu_t, mu, sigma2, phi):
+            # the covariance matrix is diagonal, so we can just take the product
+            return np.log(self.eps + phi) + np.log(self.eps + multivariate_normal.pdf(mu_t, mean=mu, cov=np.diag(sigma2)))
+        p = np.array([f(mu_t, mu[i], sigma2[i], phi[i]) for i in np.arange(mu.shape[0])])
+        return np.argmax(p, axis=0)
+
+    def _cluster_purity(self, y_pred, y_true):
+        tab = metrics.cluster.contingency_matrix(y_true, y_pred)
+        return np.sum(np.amax(tab, axis=0)) / np.sum(tab)
+
+    def _accuracy(self, y_pred, y_true):
+        def cluster_acc(Y_pred, Y):
+            assert Y_pred.size == Y.size
+            D = max(Y_pred.max(), Y.max()) + 1
+            w = np.zeros((D, D), dtype=np.int32)
+            for i in range(Y_pred.size):
+                w[Y_pred[i], Y[i]] += 1
+            ind = np.transpose(np.asarray(linear_assignment(w.max() - w)))
+            return sum([w[i, j] for i, j in ind]) * 1.0 / Y_pred.size, np.array(w)
+
+        y_pred = np.array(y_pred, np.int32)
+        y_true = np.array(y_true, np.int32)
+        return cluster_acc(y_pred, y_true)
+
+    def _get_batch(self, batch_size):
+        ii = np.random.choice(np.arange(self.X.shape[0]), batch_size, replace=False)
+        X_batch = self.X[ii,]
+        if self.y is not None:
+            y_batch = self.y[ii]
+        else:
+            y_batch = None
+        W_batch = self.W[ii,]
+        G_batch = self.G[ii,]
+        return X_batch, y_batch, W_batch, G_batch
+
+    def _print_progress(self, model, epoch=-1):
+        if self.y is not None:
+            print(epoch,
+                  &#34;tot_loss:&#34;, &#34;%.2f&#34; % round(self.loss[-1], 2),
+                  &#34;\trec_loss:&#34;, &#34;%.2f&#34; % round(self.reconstruction_loss[-1], 2),
+                  &#34;\tlat_loss:&#34;, &#34;%.2f&#34; % round(self.latent_loss[-1], 2),
+                  &#34;\tacc:&#34;, &#34;%.2f&#34; % round(self.accuracy[-1], 2),
+                  &#34;\tpur:&#34;, &#34;%.2f&#34; % round(self.cluster_purity[-1], 2),
+                  flush=True
+                  )
+        else:
+            print(epoch,
+                  &#34;tot_loss:&#34;, &#34;%.2f&#34; % round(self.loss[-1], 2),
+                  &#34;\trec_loss:&#34;, &#34;%.2f&#34; % round(self.reconstruction_loss[-1], 2),
+                  &#34;\tlat_loss:&#34;, &#34;%.2f&#34; % round(self.latent_loss[-1], 2),
+                  flush=True
+                  )
+        return 0
+
+    def map_to_latent(self, X_c, W_c=None, n_samp=1):
+        &#39;&#39;&#39;
+            Map an input to its latent representation.
+
+            Parameters
+            ----------
+            X_c : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables]
+            W_c : int
+                Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+            n_samp : int
+                The number of latent samples to take for each input sample. (default: 1)
+
+            Returns
+            -------
+            numpy array containing the latent representations.
+        &#39;&#39;&#39;
+        if W_c is None:
+            W_c = np.ones(X_c.shape, dtype=np.float32)
+        return np.concatenate([self.model((X_c, W_c))[5] for i in np.arange(n_samp)], axis=0)
+
+    def get_loss(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
+        &#39;&#39;&#39;
+            Calculate the loss for specific input data.
+
+            Parameters
+            ----------
+            X_c : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables]
+            W_c : int
+                Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+
+            Returns
+            -------
+            Dictionary with two components, &#34;reconstruction_loss&#34; and &#34;latent_loss&#34;.
+        &#39;&#39;&#39;
+        if W_c is None:
+            W_c = np.ones(X_c.shape, dtype=np.float32)
+
+        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
+
+        G_c = 1 / np.bincount(self.groups)[self.groups]
+        G_c = G_c / sum(G_c)
+        G_c = np.broadcast_to(G_c, X_c.shape)
+
+        reconstruction_loss_val = self._reconstruction_loss(
+            X_c, x, x_raw, G_c * W_c, self.output_activation, self.D, self.I, self.eps).numpy
+        latent_loss_val = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps).numpy
+        return {&#34;reconstruction_loss&#34;: reconstruction_loss_val, &#34;latent_loss&#34;: latent_loss_val}
+
+    def get_imputation_matrix(self):
+        &#39;&#39;&#39;
+            Returns
+            -------
+            The imputation matrix.
+        &#39;&#39;&#39;
+        return self.model.imputation_layer.A
+
+    def cluster(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
+        &#39;&#39;&#39;
+            Cluster input data using this VADER object.
+
+            Parameters
+            ----------
+            X_c : float
+                The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+                True, else [samples, variables]
+            W_c : int
+                Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+                corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+                value is completely ignored. If None, then no missingness is assumed. (default: None)
+
+            Returns
+            -------
+            Clusters encoded as integers.
+        &#39;&#39;&#39;
+        if W_c is None:
+            W_c = np.ones(X_c.shape)
+        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
+
+        return self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
+
+    def get_cluster_means(self):
+        &#39;&#39;&#39;
+            Get the cluster averages represented by this VADER object. Technically, this maps the latent Gaussian
+            mixture means to output values using this VADER object.
+
+            Returns
+            -------
+            Cluster averages.
+        &#39;&#39;&#39;
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        clusters = self.model.decode(self.gmm[&#39;mu_c&#39;])
+        return clusters.numpy()
+
+    def generate(self, n):
+        &#39;&#39;&#39;
+            Generate random samples from this VADER object.
+
+            n : int
+                The number of samples to generate.
+
+            Returns
+            -------
+            A dictionary with two components, &#34;clusters&#34; (cluster indicator) and &#34;samples&#34; (the random samples).
+        &#39;&#39;&#39;
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        if self.recurrent:
+            gen = np.zeros((n, self.D, self.I), dtype=np.float)
+        else:
+            gen = np.zeros((n, self.D), dtype=np.float)
+        c = np.random.choice(np.arange(self.K), size=n, p=self.gmm[&#39;phi&#39;])
+        for k in np.arange(self.K):
+            ii = np.flatnonzero(c == k)
+            z_rnd = \
+                self.gmm[&#39;mu&#39;][None, k, :] + \
+                np.sqrt(self.gmm[&#39;sigma2&#39;])[None, k, :] * \
+                np.random.normal(size=[ii.shape[0], self.n_hidden[-1]])
+            if self.recurrent:
+                gen[ii,:,:] = self.model.decode(z_rnd)[0].numpy()
+            else:
+                gen[ii,:] = self.model.decode(z_rnd)[0].numpy()
+        gen = {
+            &#34;clusters&#34;: c,
+            &#34;samples&#34;: gen
+        }
+        return gen
+
+    def predict(self, X_test, W_test=None):
+        &#39;&#39;&#39;
+            Map input data to output (i.e. reconstructed input).
+
+            Parameters
+            ----------
+            X_test : float numpy array
+                The input data to be mapped.
+            W_test : integer numpy array of same dimensions as X_test
+                Missingness indicator. Entries in X_test for which the corresponding entry in W_test equals 0 are
+                treated as missing. More precisely, their specific numeric value is completely ignored.
+
+            Returns
+            -------
+            numpy array with reconstructed input (i.e. the autoencoder output).
+        &#39;&#39;&#39;
+
+        if W_test is None:
+            W_test = np.ones(X_test.shape)
+
+        if self.seed is not None:
+            np.random.seed(self.seed)
+
+        return self.model((X_test, W_test))[0].numpy()</code></pre>
+</details>
+<h3>Methods</h3>
+<dl>
+<dt id="vader.vader.VADER.cluster"><code class="name flex">
+<span>def <span class="ident">cluster</span></span>(<span>self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Cluster input data using this VADER object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X_c</code></strong> :&ensp;<code>float</code></dt>
+<dd>The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+True, else [samples, variables]</dd>
+<dt><strong><code>W_c</code></strong> :&ensp;<code>int</code></dt>
+<dd>Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+value is completely ignored. If None, then no missingness is assumed. (default: None)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Clusters encoded as integers.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def cluster(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
+    &#39;&#39;&#39;
+        Cluster input data using this VADER object.
+
+        Parameters
+        ----------
+        X_c : float
+            The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+            True, else [samples, variables]
+        W_c : int
+            Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+            corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+            value is completely ignored. If None, then no missingness is assumed. (default: None)
+
+        Returns
+        -------
+        Clusters encoded as integers.
+    &#39;&#39;&#39;
+    if W_c is None:
+        W_c = np.ones(X_c.shape)
+    x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
+
+    return self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.fit"><code class="name flex">
+<span>def <span class="ident">fit</span></span>(<span>self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Train a VADER object.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>Train n_epoch epochs. (default: 10)</dd>
+<dt><strong><code>learning_rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>Learning rate for this set of epochs (default: learning rate specified at object construction)
+(NB: not currently used!)</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Print progress? (default: False)</dd>
+<dt><strong><code>exclude_variables</code></strong> :&ensp;<code>list</code> of <code>character</code></dt>
+<dd>List of variables to exclude in computing the gradient</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>0 if successful</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def fit(self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None):
+    &#39;&#39;&#39;
+        Train a VADER object.
+
+        Parameters
+        ----------
+        n_epoch : int
+            Train n_epoch epochs. (default: 10)
+        learning_rate: float
+            Learning rate for this set of epochs (default: learning rate specified at object construction)
+            (NB: not currently used!)
+        verbose : bool
+            Print progress? (default: False)
+        exclude_variables: list of character
+            List of variables to exclude in computing the gradient
+
+        Returns
+        -------
+        0 if successful
+    &#39;&#39;&#39;
+
+    @tf.function
+    def train_step(X, W, G):
+        GW = G * tf.cast(W, dtype=G.dtype)
+        with tf.GradientTape() as tape:
+            x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X, W), training=True)
+            rec_loss = self._reconstruction_loss(
+                X, x, x_raw, GW, self.output_activation, self.D, self.I, self.eps)
+            if self.alpha &gt; 0.0:
+                lat_loss = self.alpha * self._latent_loss(
+                    z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+            else:
+                lat_loss = tf.convert_to_tensor(value=0.0)  # non-variational
+            loss = rec_loss + lat_loss
+        gradients = tape.gradient(loss, self.model.trainable_variables)
+        self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
+
+    if self.seed is not None:
+        np.random.seed(self.seed)
+
+    if verbose:
+        self._print_progress(self.model, -1)
+    for epoch in range(n_epoch):
+        n_batches = self.X.shape[0] // self.batch_size
+        for iteration in range(n_batches):
+            sys.stdout.flush()
+            X_batch, y_batch, W_batch, G_batch = self._get_batch(self.batch_size)
+            train_step(X_batch, W_batch, G_batch)
+        self._update_state(self.model)
+        self.n_epoch += 1
+        if verbose:
+            self._print_progress(self.model, self.n_epoch)
+    if self.save_path is not None:
+        tf.keras.models.save_model(self.model, self.save_path, save_format=&#34;tf&#34;)
+    return 0</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.generate"><code class="name flex">
+<span>def <span class="ident">generate</span></span>(<span>self, n)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Generate random samples from this VADER object.</p>
+<p>n : int
+The number of samples to generate.</p>
+<h2 id="returns">Returns</h2>
+<p>A dictionary with two components, "clusters" (cluster indicator) and "samples" (the random samples).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def generate(self, n):
+    &#39;&#39;&#39;
+        Generate random samples from this VADER object.
+
+        n : int
+            The number of samples to generate.
+
+        Returns
+        -------
+        A dictionary with two components, &#34;clusters&#34; (cluster indicator) and &#34;samples&#34; (the random samples).
+    &#39;&#39;&#39;
+    if self.seed is not None:
+        np.random.seed(self.seed)
+
+    if self.recurrent:
+        gen = np.zeros((n, self.D, self.I), dtype=np.float)
+    else:
+        gen = np.zeros((n, self.D), dtype=np.float)
+    c = np.random.choice(np.arange(self.K), size=n, p=self.gmm[&#39;phi&#39;])
+    for k in np.arange(self.K):
+        ii = np.flatnonzero(c == k)
+        z_rnd = \
+            self.gmm[&#39;mu&#39;][None, k, :] + \
+            np.sqrt(self.gmm[&#39;sigma2&#39;])[None, k, :] * \
+            np.random.normal(size=[ii.shape[0], self.n_hidden[-1]])
+        if self.recurrent:
+            gen[ii,:,:] = self.model.decode(z_rnd)[0].numpy()
+        else:
+            gen[ii,:] = self.model.decode(z_rnd)[0].numpy()
+    gen = {
+        &#34;clusters&#34;: c,
+        &#34;samples&#34;: gen
+    }
+    return gen</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.get_cluster_means"><code class="name flex">
+<span>def <span class="ident">get_cluster_means</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get the cluster averages represented by this VADER object. Technically, this maps the latent Gaussian
+mixture means to output values using this VADER object.</p>
+<h2 id="returns">Returns</h2>
+<p>Cluster averages.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_cluster_means(self):
+    &#39;&#39;&#39;
+        Get the cluster averages represented by this VADER object. Technically, this maps the latent Gaussian
+        mixture means to output values using this VADER object.
+
+        Returns
+        -------
+        Cluster averages.
+    &#39;&#39;&#39;
+    if self.seed is not None:
+        np.random.seed(self.seed)
+
+    clusters = self.model.decode(self.gmm[&#39;mu_c&#39;])
+    return clusters.numpy()</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.get_imputation_matrix"><code class="name flex">
+<span>def <span class="ident">get_imputation_matrix</span></span>(<span>self)</span>
+</code></dt>
+<dd>
+<div class="desc"><h2 id="returns">Returns</h2>
+<p>The imputation matrix.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_imputation_matrix(self):
+    &#39;&#39;&#39;
+        Returns
+        -------
+        The imputation matrix.
+    &#39;&#39;&#39;
+    return self.model.imputation_layer.A</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.get_loss"><code class="name flex">
+<span>def <span class="ident">get_loss</span></span>(<span>self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Calculate the loss for specific input data.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X_c</code></strong> :&ensp;<code>float</code></dt>
+<dd>The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+True, else [samples, variables]</dd>
+<dt><strong><code>W_c</code></strong> :&ensp;<code>int</code></dt>
+<dd>Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+value is completely ignored. If None, then no missingness is assumed. (default: None)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>Dictionary with two components, "reconstruction_loss" and "latent_loss".</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def get_loss(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
+    &#39;&#39;&#39;
+        Calculate the loss for specific input data.
+
+        Parameters
+        ----------
+        X_c : float
+            The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+            True, else [samples, variables]
+        W_c : int
+            Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+            corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+            value is completely ignored. If None, then no missingness is assumed. (default: None)
+
+        Returns
+        -------
+        Dictionary with two components, &#34;reconstruction_loss&#34; and &#34;latent_loss&#34;.
+    &#39;&#39;&#39;
+    if W_c is None:
+        W_c = np.ones(X_c.shape, dtype=np.float32)
+
+    x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
+
+    G_c = 1 / np.bincount(self.groups)[self.groups]
+    G_c = G_c / sum(G_c)
+    G_c = np.broadcast_to(G_c, X_c.shape)
+
+    reconstruction_loss_val = self._reconstruction_loss(
+        X_c, x, x_raw, G_c * W_c, self.output_activation, self.D, self.I, self.eps).numpy
+    latent_loss_val = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps).numpy
+    return {&#34;reconstruction_loss&#34;: reconstruction_loss_val, &#34;latent_loss&#34;: latent_loss_val}</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.map_to_latent"><code class="name flex">
+<span>def <span class="ident">map_to_latent</span></span>(<span>self, X_c, W_c=None, n_samp=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Map an input to its latent representation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X_c</code></strong> :&ensp;<code>float</code></dt>
+<dd>The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+True, else [samples, variables]</dd>
+<dt><strong><code>W_c</code></strong> :&ensp;<code>int</code></dt>
+<dd>Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+value is completely ignored. If None, then no missingness is assumed. (default: None)</dd>
+<dt><strong><code>n_samp</code></strong> :&ensp;<code>int</code></dt>
+<dd>The number of latent samples to take for each input sample. (default: 1)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>numpy array containing the latent representations.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def map_to_latent(self, X_c, W_c=None, n_samp=1):
+    &#39;&#39;&#39;
+        Map an input to its latent representation.
+
+        Parameters
+        ----------
+        X_c : float
+            The data to be clustered. Numpy array with dimensions [samples, time points, variables] if recurrent is
+            True, else [samples, variables]
+        W_c : int
+            Missingness indicator. Numpy array with same dimensions as X_c. Entries in X_c for which the
+            corresponding entry in W_train equals 0 are treated as missing. More precisely, their specific numeric
+            value is completely ignored. If None, then no missingness is assumed. (default: None)
+        n_samp : int
+            The number of latent samples to take for each input sample. (default: 1)
+
+        Returns
+        -------
+        numpy array containing the latent representations.
+    &#39;&#39;&#39;
+    if W_c is None:
+        W_c = np.ones(X_c.shape, dtype=np.float32)
+    return np.concatenate([self.model((X_c, W_c))[5] for i in np.arange(n_samp)], axis=0)</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.pre_fit"><code class="name flex">
+<span>def <span class="ident">pre_fit</span></span>(<span>self, n_epoch=10, learning_rate=None, verbose=False)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Pre-train a VADER object using only the latent loss, and initialize the Gaussian mixture parameters using
+the resulting latent representation.</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>n_epoch</code></strong> :&ensp;<code>int</code></dt>
+<dd>Train n_epoch epochs. (default: 10)</dd>
+<dt><strong><code>learning_rate</code></strong> :&ensp;<code>float</code></dt>
+<dd>Learning rate for this set of epochs(default: learning rate specified at object construction)
+(NB: not currently used!)</dd>
+<dt><strong><code>verbose</code></strong> :&ensp;<code>bool</code></dt>
+<dd>Print progress? (default: False)</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<dl>
+<dt><code>0 if successful</code></dt>
+<dd>&nbsp;</dd>
+</dl></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def pre_fit(self, n_epoch=10, learning_rate=None, verbose=False):
+    &#39;&#39;&#39;
+        Pre-train a VADER object using only the latent loss, and initialize the Gaussian mixture parameters using
+        the resulting latent representation.
+
+        Parameters
+        ----------
+        n_epoch : int
+            Train n_epoch epochs. (default: 10)
+        learning_rate: float
+            Learning rate for this set of epochs(default: learning rate specified at object construction)
+            (NB: not currently used!)
+        verbose : bool
+            Print progress? (default: False)
+
+        Returns
+        -------
+        0 if successful
+    &#39;&#39;&#39;
+
+    # save the alpha
+    alpha = self.alpha
+    # pre-train using non-variational AEs
+    self.alpha = 0.0
+    # pre-train
+    ret = self.fit(n_epoch, learning_rate, verbose)
+
+    try:
+        # map to latent
+        z = self.map_to_latent(self.X, self.W, n_samp=10)
+        # fit GMM
+        gmm = GaussianMixture(n_components=self.K, covariance_type=&#34;diag&#34;, reg_covar=1e-04).fit(z)
+        # get GMM parameters
+        phi = np.log(gmm.weights_ + self.eps) # inverse softmax
+        mu = gmm.means_
+        sigma2 = np.log(np.exp(gmm.covariances_) - 1.0 + self.eps) # inverse softplus
+
+        # initialize mixture components
+        def my_get_variable(varname):
+            return [v for v in self.model.trainable_variables if v.name == varname][0]
+        mu_c_unscaled = my_get_variable(&#34;mu_c_unscaled:0&#34;)
+        mu_c_unscaled.assign(tf.convert_to_tensor(value=mu, dtype=tf.float32))
+        sigma2_c_unscaled = my_get_variable(&#34;sigma2_c_unscaled:0&#34;)
+        sigma2_c_unscaled.assign(tf.convert_to_tensor(value=sigma2, dtype=tf.float32))
+        phi_c_unscaled = my_get_variable(&#34;phi_c_unscaled:0&#34;)
+        phi_c_unscaled.assign(tf.convert_to_tensor(value=phi, dtype=tf.float32))
+    except:
+        warnings.warn(&#34;Failed to initialize VaDER with Gaussian mixture&#34;)
+    finally:
+        # restore the alpha
+        self.alpha = alpha
+    return ret</code></pre>
+</details>
+</dd>
+<dt id="vader.vader.VADER.predict"><code class="name flex">
+<span>def <span class="ident">predict</span></span>(<span>self, X_test, W_test=None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Map input data to output (i.e. reconstructed input).</p>
+<h2 id="parameters">Parameters</h2>
+<dl>
+<dt><strong><code>X_test</code></strong> :&ensp;<code>float numpy array</code></dt>
+<dd>The input data to be mapped.</dd>
+<dt><strong><code>W_test</code></strong> :&ensp;<code>integer numpy array</code> of <code>same dimensions as X_test</code></dt>
+<dd>Missingness indicator. Entries in X_test for which the corresponding entry in W_test equals 0 are
+treated as missing. More precisely, their specific numeric value is completely ignored.</dd>
+</dl>
+<h2 id="returns">Returns</h2>
+<p>numpy array with reconstructed input (i.e. the autoencoder output).</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def predict(self, X_test, W_test=None):
+    &#39;&#39;&#39;
+        Map input data to output (i.e. reconstructed input).
+
+        Parameters
+        ----------
+        X_test : float numpy array
+            The input data to be mapped.
+        W_test : integer numpy array of same dimensions as X_test
+            Missingness indicator. Entries in X_test for which the corresponding entry in W_test equals 0 are
+            treated as missing. More precisely, their specific numeric value is completely ignored.
+
+        Returns
+        -------
+        numpy array with reconstructed input (i.e. the autoencoder output).
+    &#39;&#39;&#39;
+
+    if W_test is None:
+        W_test = np.ones(X_test.shape)
+
+    if self.seed is not None:
+        np.random.seed(self.seed)
+
+    return self.model((X_test, W_test))[0].numpy()</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="vader" href="index.html">vader</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="vader.vader.VADER" href="#vader.vader.VADER">VADER</a></code></h4>
+<ul class="">
+<li><code><a title="vader.vader.VADER.cluster" href="#vader.vader.VADER.cluster">cluster</a></code></li>
+<li><code><a title="vader.vader.VADER.fit" href="#vader.vader.VADER.fit">fit</a></code></li>
+<li><code><a title="vader.vader.VADER.generate" href="#vader.vader.VADER.generate">generate</a></code></li>
+<li><code><a title="vader.vader.VADER.get_cluster_means" href="#vader.vader.VADER.get_cluster_means">get_cluster_means</a></code></li>
+<li><code><a title="vader.vader.VADER.get_imputation_matrix" href="#vader.vader.VADER.get_imputation_matrix">get_imputation_matrix</a></code></li>
+<li><code><a title="vader.vader.VADER.get_loss" href="#vader.vader.VADER.get_loss">get_loss</a></code></li>
+<li><code><a title="vader.vader.VADER.map_to_latent" href="#vader.vader.VADER.map_to_latent">map_to_latent</a></code></li>
+<li><code><a title="vader.vader.VADER.pre_fit" href="#vader.vader.VADER.pre_fit">pre_fit</a></code></li>
+<li><code><a title="vader.vader.VADER.predict" href="#vader.vader.VADER.predict">predict</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
