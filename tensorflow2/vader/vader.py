@@ -8,7 +8,7 @@ import os
 import numpy as np
 import warnings
 from sklearn.mixture import GaussianMixture
-from vadermodel import VaderModel
+from vader.vadermodel import VaderModel
 
 class VADER:
     '''
