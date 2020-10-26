@@ -505,8 +505,8 @@ class VADER:
         G_c = np.broadcast_to(G_c, X_c.shape)
 
         reconstruction_loss_val = self._reconstruction_loss(
-            X_c, x, x_raw, G_c * W_c, self.output_activation, self.D, self.I, self.eps).numpy
-        latent_loss_val = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps).numpy
+            X_c, x, x_raw, G_c * W_c, self.output_activation, self.D, self.I, self.eps).numpy()
+        latent_loss_val = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps).numpy()
         return {"reconstruction_loss": reconstruction_loss_val, "latent_loss": latent_loss_val}
 
     def get_imputation_matrix(self):
