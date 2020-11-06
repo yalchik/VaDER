@@ -13,7 +13,7 @@ def read_x_w_y(filename: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Reads csv file and produces 3 numpy arrays:
     1. X tensor, where 1st dimension is samples, 2nd dimension is time points, 3rd dimension is feature vectors.
-    2. W tensor, which has the same shape as X tensor, but defines if the corresponding value in X tensor is nan.
+    2. W tensor, which has the same shape as X tensor, but defines if the corresponding value in X tensor is missing.
     3. Y vector, which contains class labels for each sample.
     @param filename: input data file in .csv format.
     @return: tuple of 3 elements: X tensor, W tensor and Y vector.
@@ -43,11 +43,12 @@ def csv_to_numpy_tensor_and_class_vector(filename: str, class_atr: str = "cluste
 
 def generate_wtensor_from_xtensor(x_tensor: np.ndarray) -> np.ndarray:
     """
-    Generates W tensor, which has the same shape as X tensor, but defines if the corresponding value in X tensor is nan.
+    Generates W tensor, which has the same shape as X tensor, but defines if the corresponding value in X tensor is missing.
     @param x_tensor: X tensor
     @return: W tensor
     """
-    return np.isnan(x_tensor).astype(int)
+    w = ~np.isnan(x_tensor)
+    return w.astype(int)
 
 
 def __map_dataframe_to_xdict(df: pd.DataFrame, class_atr: str, feature_time_separator: str) -> XTensorDict:
@@ -56,7 +57,7 @@ def __map_dataframe_to_xdict(df: pd.DataFrame, class_atr: str, feature_time_sepa
         if column == class_atr:
             continue
         feature, time = column.split(feature_time_separator)
-        x_dict[feature][time] = df[column].to_numpy()
+        x_dict[feature][time] = df[column].replace(np.nan, 0).to_numpy()
     return x_dict
 
 
