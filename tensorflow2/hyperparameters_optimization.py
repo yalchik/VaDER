@@ -36,27 +36,34 @@ def run_cv(data, weights, seed, save_path, params_dict, verbose=False):
 def cv_fold_step(X_train, X_val, W_train, W_val, seed, save_path, params_dict):
     # calculate y_pred
     vader = fit_vader(X_train, W_train, seed, save_path, params_dict)
-    test_loss_dict = vader.get_loss(X_train)
+    test_loss_dict = vader.get_loss(X_val)
     train_reconstruction_loss, train_latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
     test_reconstruction_loss, test_latent_loss = test_loss_dict["reconstruction_loss"], test_loss_dict["latent_loss"]
     effective_k = len(Counter(vader.cluster(X_train)))
     y_pred = vader.cluster(X_val)
+
+    # calculate total loss
+    alpha = params_dict["alpha"] if params_dict["alpha"] else 1
+    train_total_loss = train_reconstruction_loss + alpha * train_latent_loss
+    test_total_loss = test_reconstruction_loss + alpha * test_latent_loss
 
     # calculate y_true
     vader = fit_vader(X_val, W_val, seed, save_path, params_dict)
     y_true = vader.cluster(X_val)
 
     # evaluate clustering
-    adj_rand_index = calc_adj_rand_index(y_pred, y_pred)
-    rand_index = calc_rand_index(y_pred, y_pred)
-    prediction_strength = calc_prediction_strength(y_pred, y_pred)
+    adj_rand_index = calc_adj_rand_index(y_pred, y_true)
+    rand_index = calc_rand_index(y_pred, y_true)
+    prediction_strength = calc_prediction_strength(y_pred, y_true)
     permuted_clustering_evaluation_metrics = calc_permuted_clustering_evaluation_metrics(y_pred, y_true,
                                                                                          params_dict["n_perm"])
     return {
         "train_reconstruction_loss": train_reconstruction_loss,
         "train_latent_loss": train_latent_loss,
+        "train_total_loss": train_total_loss,
         "test_reconstruction_loss": test_reconstruction_loss,
         "test_latent_loss": test_latent_loss,
+        "test_total_loss": test_total_loss,
         "effective_k": effective_k,
         "rand_index": rand_index,
         "rand_index_null": permuted_clustering_evaluation_metrics["rand_index"],
@@ -72,9 +79,10 @@ def fit_vader(X_train, W_train, seed, save_path, params_dict) -> VADER:
     n_hidden = params_dict["n_hidden"]
     learning_rate = params_dict["learning_rate"]
     batch_size = params_dict["batch_size"]
+    alpha = params_dict["alpha"]
     n_epoch = params_dict["n_epoch"]
     vader = VADER(X_train=X_train, W_train=W_train, save_path=save_path, n_hidden=n_hidden, k=k, seed=seed,
-                  learning_rate=learning_rate, recurrent=True, batch_size=batch_size)
+                  learning_rate=learning_rate, recurrent=True, batch_size=batch_size, alpha=alpha)
 
     vader.pre_fit(n_epoch=n_epoch, verbose=False)
     vader.fit(n_epoch=n_epoch, verbose=False)
@@ -101,8 +109,23 @@ def calc_adj_rand_index(y_pred, y_true) -> float:
 
 
 def calc_prediction_strength(y_pred, y_true) -> float:
-    # TODO: Not implemented yet
-    return 0
+    # TODO: investigate strange behaviour (e.g. [1,1,2,2,3], [1,1,2,2,3])
+    return calc_prediction_strength_legacy(y_pred, y_true)
+
+
+def calc_prediction_strength_legacy(p, q) -> float:
+    def f(y):
+        m = [y for _ in range(len(y))]
+        return m == np.transpose(m)
+
+    n = len(p)
+    mp = f(p)
+    mq = f(q)
+    mpq = mp & mq
+    pr_str_vector = pd.DataFrame(range(n)).groupby(q).apply(
+        lambda ii: (np.sum(mpq[:, ii]) - len(ii)) / len(ii) / (n - 1)
+    )
+    return min(pr_str_vector)
 
 
 def calc_permuted_clustering_evaluation_metrics(y_pred, y_true, n_perm):
