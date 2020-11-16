@@ -1,10 +1,9 @@
 import tensorflow as tf
-from functools import partial
+import tensorflow_probability as tfp
 from scipy.optimize import linear_sum_assignment as linear_assignment
 from sklearn import metrics
 from scipy.stats import multivariate_normal
 import sys
-import os
 import numpy as np
 import warnings
 from sklearn.mixture import GaussianMixture
@@ -365,25 +364,47 @@ class VADER:
         else:
             log_2pi = tf.math.log(2 * np.pi)
             log_phi_c = tf.math.log(eps + phi_c)
-            def log_pdf(z):
-                def f(i):
-                    return - 0.5 * (log_sigma2_c[i] + log_2pi + tf.math.square(z - mu_c[i]) / sigma2_c[i])
-                    # return - tf.square(z - mu[i]) / 2.0 / (eps + sigma2[i]) - tf.math.log(
-                    #     eps + 2.0 * np.pi * sigma2[i]) / 2.0
-                return tf.transpose(a=tf.map_fn(f, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
 
-            log_p = log_phi_c + tf.reduce_sum(input_tensor=log_pdf(z), axis=2)
+            # def f(i):
+            #     return - 0.5 * (log_sigma2_c[i] + log_2pi + tf.math.square(z - mu_c[i]) / sigma2_c[i])
+            # log_pdf_z = tf.transpose(a=tf.map_fn(f, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+
+            N = z.shape[0]
+            ii, jj = tf.meshgrid(tf.range(K, dtype = tf.int32), tf.range(N, dtype = tf.int32))
+            ii = tf.reshape(ii, [N * K])
+            jj = tf.reshape(jj, [N * K])
+            lsc_b = tf.gather(log_sigma2_c, ii, axis = 0)
+            mc_b = tf.gather(mu_c, ii, axis = 0)
+            sc_b = tf.gather(sigma2_c, ii, axis = 0)
+            z_b = tf.gather(z, jj, axis = 0)
+            log_pdf_z = - 0.5 * (lsc_b + log_2pi + tf.math.square(z_b - mc_b) / sc_b)
+            log_pdf_z = tf.reshape(log_pdf_z, [N, K, self.n_hidden[-1]])
+
+            log_p = log_phi_c + tf.reduce_sum(input_tensor=log_pdf_z, axis=2)
             lse_p = tf.reduce_logsumexp(input_tensor=log_p, keepdims=True, axis=1)
             log_gamma_c = log_p - lse_p
 
             gamma_c = tf.exp(log_gamma_c)
 
+            # # latent loss: E[log p(z|c) + log p(c) - log q(z|x) - log q(c|x)]
+            # term1 = tf.math.log(eps + sigma2_c)
+            # f2 = lambda i: sigma2_tilde / (eps + sigma2_c[i])
+            # term2 = tf.transpose(a=tf.map_fn(f2, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            # f3 = lambda i: tf.square(mu_tilde - mu_c[i]) / (eps + sigma2_c[i])
+            # term3 = tf.transpose(a=tf.map_fn(f3, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+
             # latent loss: E[log p(z|c) + log p(c) - log q(z|x) - log q(c|x)]
             term1 = tf.math.log(eps + sigma2_c)
-            f2 = lambda i: sigma2_tilde / (eps + sigma2_c[i])
-            term2 = tf.transpose(a=tf.map_fn(f2, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
-            f3 = lambda i: tf.square(mu_tilde - mu_c[i]) / (eps + sigma2_c[i])
-            term3 = tf.transpose(a=tf.map_fn(f3, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            N = sigma2_tilde.shape[0]
+            ii, jj = tf.meshgrid(tf.range(K, dtype = tf.int32), tf.range(N, dtype = tf.int32))
+            ii = tf.reshape(ii, [N * K])
+            jj = tf.reshape(jj, [N * K])
+            st_b = tf.gather(sigma2_tilde, jj, axis = 0)
+            sc_b = tf.gather(sigma2_c, ii, axis = 0)
+            term2 = tf.reshape(st_b / (eps + sc_b), [N, K, self.n_hidden[-1]])
+            mt_b = tf.gather(mu_tilde, jj, axis = 0)
+            mc_b = tf.gather(mu_c, ii, axis = 0)
+            term3 = tf.reshape(tf.math.square(mt_b - mc_b) / (eps + sc_b), [N, K, self.n_hidden[-1]])
 
             latent_loss1 = 0.5 * tf.reduce_sum(
                 input_tensor=gamma_c * tf.reduce_sum(input_tensor=term1 + term2 + term3, axis=2), axis=1)
