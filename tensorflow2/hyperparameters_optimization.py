@@ -2,20 +2,58 @@ import os
 import sys
 import argparse
 import json
+import pandas as pd
+import multiprocessing as mp
+import numpy as np
 from vader import VADER
 from vader.utils import read_adni_data
 from collections import Counter
 from sklearn.model_selection import KFold
 from sklearn.metrics.cluster import adjusted_rand_score
 from scipy.special import comb
-import pandas as pd
-import numpy as np
-import multiprocessing as mp
+from typing import List, Dict, Tuple, Union, Optional
+from numpy import ndarray
 
 
-def run_cv(data, weights, seed, save_path, params_dict, verbose=False):
+# Type aliases
+ParamsDictType = Dict[str, Union[int, float, List[Union[int, float]]]]
+ParamsGridType = List[ParamsDictType]
+
+
+def run_hyperparameters_optimization(input_data_file: str, input_weights_file: str, input_param_grid_file: str,
+                                     input_seed: int, n_proc: int, output_save_path: str, output_evaluation_path: str,
+                                     verbose: bool = False) -> None:
+    # read files
+    input_data = read_adni_data(input_data_file)
+    input_weights = read_adni_data(input_weights_file) if input_weights_file else None
+    input_param_grid = read_param_grid(input_param_grid_file)
+
+    # cross-validation
+    with mp.Pool(n_proc) as pool:
+        cv_results_list = pool.map(run_cv_parallel, [(input_data, input_weights, input_seed, output_save_path,
+                                                      params_dict, verbose) for params_dict in input_param_grid])
+
+    # output
+    pd.DataFrame(cv_results_list).to_csv(output_evaluation_path)
+    if verbose:
+        print(cv_results_list)
+
+
+def read_param_grid(param_grid_file: str) -> ParamsGridType:
+    with open(param_grid_file, 'r') as json_file:
+        input_param_grid = json.load(json_file)
+    return input_param_grid
+
+
+def run_cv_parallel(params: Tuple[np.ndarray, np.ndarray, int, str, ParamsDictType, bool]) -> pd.Series:
+    return run_cv(*params)
+
+
+def run_cv(data: ndarray, weights: ndarray, seed: int, save_path: str, params_dict: ParamsDictType,
+           verbose: bool = False) -> pd.Series:
     if verbose:
         print("=> run_cv with:", params_dict)
+
     n_splits = params_dict["n_splits"]
     cv_folds_results_list = []
     for train_index, val_index in KFold(n_splits=n_splits, shuffle=True, random_state=seed).split(data):
@@ -33,7 +71,8 @@ def run_cv(data, weights, seed, save_path, params_dict, verbose=False):
     return cv_mean_results_series
 
 
-def cv_fold_step(X_train, X_val, W_train, W_val, seed, save_path, params_dict):
+def cv_fold_step(X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray], W_val: Optional[ndarray],
+                 seed: int, save_path: str, params_dict: ParamsDictType) -> Dict[str, Union[int, float]]:
     # calculate y_pred
     vader = fit_vader(X_train, W_train, seed, save_path, params_dict)
     test_loss_dict = vader.get_loss(X_val)
@@ -74,7 +113,8 @@ def cv_fold_step(X_train, X_val, W_train, W_val, seed, save_path, params_dict):
     }
 
 
-def fit_vader(X_train, W_train, seed, save_path, params_dict) -> VADER:
+def fit_vader(X_train: ndarray, W_train: Optional[ndarray], seed: int, save_path: str,
+              params_dict: ParamsDictType) -> VADER:
     k = params_dict["k"]
     n_hidden = params_dict["n_hidden"]
     learning_rate = params_dict["learning_rate"]
@@ -89,7 +129,7 @@ def fit_vader(X_train, W_train, seed, save_path, params_dict) -> VADER:
     return vader
 
 
-def calc_rand_index(y_pred, y_true) -> float:
+def calc_rand_index(y_pred: ndarray, y_true: ndarray) -> float:
     clusters = y_true
     classes = y_pred
     # See: https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
@@ -104,17 +144,17 @@ def calc_rand_index(y_pred, y_true) -> float:
     return (tp + tn) / (tp + fp + fn + tn)
 
 
-def calc_adj_rand_index(y_pred, y_true) -> float:
+def calc_adj_rand_index(y_pred: ndarray, y_true: ndarray) -> float:
     return adjusted_rand_score(y_true, y_pred)
 
 
-def calc_prediction_strength(y_pred, y_true) -> float:
+def calc_prediction_strength(y_pred: ndarray, y_true: ndarray) -> float:
     # TODO: investigate strange behaviour (e.g. [1,1,2,2,3], [1,1,2,2,3])
     return calc_prediction_strength_legacy(y_pred, y_true)
 
 
-def calc_prediction_strength_legacy(p, q) -> float:
-    def f(y):
+def calc_prediction_strength_legacy(p: ndarray, q: ndarray) -> float:
+    def f(y: ndarray) -> ndarray:
         m = [y for _ in range(len(y))]
         return m == np.transpose(m)
 
@@ -128,7 +168,7 @@ def calc_prediction_strength_legacy(p, q) -> float:
     return min(pr_str_vector)
 
 
-def calc_permuted_clustering_evaluation_metrics(y_pred, y_true, n_perm):
+def calc_permuted_clustering_evaluation_metrics(y_pred: ndarray, y_true: ndarray, n_perm: int):
     metrics_dict = {}
     for i in range(n_perm):
         sample_y_pred = np.random.permutation(y_pred)
@@ -139,32 +179,6 @@ def calc_permuted_clustering_evaluation_metrics(y_pred, y_true, n_perm):
     metrics_df = pd.DataFrame.from_dict(metrics_dict, orient='index',
                                         columns=['adj_rand_index', 'rand_index', 'prediction_strength'])
     return metrics_df.mean()
-
-
-def read_param_grid(param_grid_file):
-    with open(param_grid_file, 'r') as json_file:
-        input_param_grid = json.load(json_file)
-    return input_param_grid
-
-
-def run_cv_parallel(params):
-    return run_cv(*params)
-
-
-def run_hyperparameters_optimization(input_data_file, input_weights_file, input_param_grid_file, input_seed,
-                                     n_proc, output_save_path, output_evaluation_path):
-    # read files
-    input_data = read_adni_data(input_data_file)
-    input_weights = read_adni_data(input_weights_file) if input_weights_file else None
-    input_param_grid = read_param_grid(input_param_grid_file)
-
-    # cross-validation
-    with mp.Pool(n_proc) as pool:
-        cv_results_list = pool.map(run_cv_parallel, [(input_data, input_weights, input_seed, output_save_path,
-                                                      params_dict) for params_dict in input_param_grid])
-
-    print(cv_results_list)
-    pd.DataFrame(cv_results_list).to_csv(output_evaluation_path)
 
 
 if __name__ == "__main__":
