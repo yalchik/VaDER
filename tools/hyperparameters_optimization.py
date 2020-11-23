@@ -21,8 +21,11 @@ ParamsGridType = List[ParamsDictType]
 
 
 def run_hyperparameters_optimization(input_data_file: str, input_weights_file: str, input_param_grid_file: str,
-                                     input_seed: int, n_proc: int, output_save_path: str, output_evaluation_path: str,
-                                     verbose: bool = False) -> None:
+                                     input_seed: int, n_repeats: int, n_proc: int, output_save_path: str,
+                                     output_evaluation_path: str, verbose: bool = False) -> None:
+    if verbose:
+        print("=> start run_hyperparameters_optimization with", locals())
+
     # read files
     input_data = read_adni_data(input_data_file)
     input_weights = read_adni_data(input_weights_file) if input_weights_file else None
@@ -30,13 +33,16 @@ def run_hyperparameters_optimization(input_data_file: str, input_weights_file: s
 
     # cross-validation
     with mp.Pool(n_proc) as pool:
-        cv_results_list = pool.map(run_cv_parallel, [(input_data, input_weights, input_seed, output_save_path,
-                                                      params_dict, verbose) for params_dict in input_param_grid])
+        cv_results_list = pool.map(run_cv_parallel, [(
+            input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
+            for params_dict in input_param_grid
+            for _ in range(n_repeats)
+        ])
 
     # output
     pd.DataFrame(cv_results_list).to_csv(output_evaluation_path)
     if verbose:
-        print(cv_results_list)
+        print("<= finish run_hyperparameters_optimization with", cv_results_list)
 
 
 def read_param_grid(param_grid_file: str) -> ParamsGridType:
@@ -52,7 +58,7 @@ def run_cv_parallel(params: Tuple[np.ndarray, np.ndarray, int, str, ParamsDictTy
 def run_cv(data: ndarray, weights: ndarray, seed: int, save_path: str, params_dict: ParamsDictType,
            verbose: bool = False) -> pd.Series:
     if verbose:
-        print("=> run_cv with:", params_dict)
+        print("=> start run_cv with", locals())
 
     n_splits = params_dict["n_splits"]
     cv_folds_results_list = []
@@ -63,7 +69,7 @@ def run_cv(data: ndarray, weights: ndarray, seed: int, save_path: str, params_di
         cv_folds_results_list.append(cv_fold_result)
 
     if verbose:
-        print("<= run_cv results:", cv_folds_results_list)
+        print("<= finish run_cv with", cv_folds_results_list)
 
     cv_folds_results_df = pd.DataFrame(cv_folds_results_list)
     cv_mean_results_series = cv_folds_results_df.mean()
@@ -187,8 +193,10 @@ if __name__ == "__main__":
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
     parser.add_argument("input_param_grid_file", type=str, help="hyperparameters values for grid search")
     parser.add_argument("--input_seed", type=int, help="used both as random_state and VaDER seed")
+    parser.add_argument("--n_repeats", type=int, default=3, help="number of processor units that can be used")
     parser.add_argument("--n_proc", type=int, help="number of processor units that can be used")
     parser.add_argument("--output_save_path", type=str, help="a directory where all models will be saved")
+    parser.add_argument("--verbose", action='store_true')
     parser.add_argument("output_evaluation_path", type=str, help="a .csv file where cross-validation results will be "
                                                                  "written")
     args = parser.parse_args()
@@ -209,9 +217,11 @@ if __name__ == "__main__":
     input_weights_file = args.input_weights_file
     input_param_grid_file = args.input_param_grid_file
     input_seed = args.input_seed if args.input_seed else None
+    n_repeats = args.n_repeats
     n_proc = args.n_proc if args.n_proc else mp.cpu_count()
     output_save_path = args.output_save_path
     output_evaluation_path = args.output_evaluation_path
+    verbose = args.verbose
 
     run_hyperparameters_optimization(input_data_file, input_weights_file, input_param_grid_file, input_seed,
-                                     n_proc, output_save_path, output_evaluation_path)
+                                     n_repeats, n_proc, output_save_path, output_evaluation_path, verbose=verbose)
