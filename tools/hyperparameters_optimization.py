@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import json
+import random
 import pandas as pd
 import multiprocessing as mp
 import numpy as np
@@ -21,7 +22,7 @@ ParamsGridType = List[ParamsDictType]
 
 
 def run_hyperparameters_optimization(input_data_file: str, input_weights_file: str, input_param_grid_file: str,
-                                     input_seed: int, n_repeats: int, n_proc: int, output_save_path: str,
+                                     input_seed: int, n_repeats: int, n_proc: int, n_sample: int, output_save_path: str,
                                      output_evaluation_path: str, verbose: bool = False) -> None:
     if verbose:
         print("=> start run_hyperparameters_optimization with", locals())
@@ -31,11 +32,17 @@ def run_hyperparameters_optimization(input_data_file: str, input_weights_file: s
     input_weights = read_adni_data(input_weights_file) if input_weights_file else None
     input_param_grid = read_param_grid(input_param_grid_file)
 
+    # randomize grid search
+    if n_sample and n_sample < len(input_param_grid):
+        param_grid = random.sample(input_param_grid, n_sample)
+    else:
+        param_grid = input_param_grid
+
     # cross-validation
     with mp.Pool(n_proc) as pool:
         cv_results_list = pool.map(run_cv_parallel, [(
             input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
-            for params_dict in input_param_grid
+            for params_dict in param_grid
             for _ in range(n_repeats)
         ])
 
@@ -195,6 +202,7 @@ if __name__ == "__main__":
     parser.add_argument("--input_seed", type=int, help="used both as random_state and VaDER seed")
     parser.add_argument("--n_repeats", type=int, default=3, help="number of processor units that can be used")
     parser.add_argument("--n_proc", type=int, help="number of processor units that can be used")
+    parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV")
     parser.add_argument("--output_save_path", type=str, help="a directory where all models will be saved")
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("output_evaluation_path", type=str, help="a .csv file where cross-validation results will be "
@@ -219,9 +227,20 @@ if __name__ == "__main__":
     input_seed = args.input_seed if args.input_seed else None
     n_repeats = args.n_repeats
     n_proc = args.n_proc if args.n_proc else mp.cpu_count()
+    n_sample = args.n_sample
     output_save_path = args.output_save_path
     output_evaluation_path = args.output_evaluation_path
     verbose = args.verbose
 
-    run_hyperparameters_optimization(input_data_file, input_weights_file, input_param_grid_file, input_seed,
-                                     n_repeats, n_proc, output_save_path, output_evaluation_path, verbose=verbose)
+    run_hyperparameters_optimization(
+        input_data_file=input_data_file,
+        input_weights_file=input_weights_file,
+        input_param_grid_file=input_param_grid_file,
+        input_seed=input_seed,
+        n_repeats=n_repeats,
+        n_proc=n_proc,
+        n_sample=n_sample,
+        output_save_path=output_save_path,
+        output_evaluation_path=output_evaluation_path,
+        verbose=verbose
+    )
