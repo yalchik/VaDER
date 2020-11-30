@@ -1,3 +1,4 @@
+import itertools
 import os
 import sys
 import argparse
@@ -47,9 +48,55 @@ def run_hyperparameters_optimization(input_data_file: str, input_weights_file: s
         ])
 
     # output
-    pd.DataFrame(cv_results_list).to_csv(output_evaluation_path)
+    cv_results_df = pd.DataFrame(cv_results_list)
+    cv_results_df.to_csv("_" + output_evaluation_path)
+
+    # 2nd step (k-optimization) preparation
+    best_hyperparameters = extract_best_parameters(cv_results_df)
+    if verbose:
+        print(f"BEST HYPERPARAMETERS ARE {best_hyperparameters.name}"
+              f"with loss={best_hyperparameters.test_reconstruction_loss}")
+    best_hyperparameters_dict = generate_param_grid_for_k_optimization(best_hyperparameters)
+    param_grid = map_param_dict_to_param_grid(best_hyperparameters_dict)
+
+    # 2nd step (k-optimization) cross-validation
+    with mp.Pool(n_proc) as pool:
+        cv_results_list = pool.map(run_cv_parallel, [(
+            input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
+            for params_dict in param_grid
+            for _ in range(n_repeats)
+        ])
+
+    # 2nd step (k-optimization) output
+    cv_results_df = pd.DataFrame(cv_results_list)
+    cv_results_df.to_csv(output_evaluation_path)
+
     if verbose:
         print("<= finish run_hyperparameters_optimization with", cv_results_list)
+
+
+def extract_best_parameters(cv_results_df, minimize_metric: str = "test_reconstruction_loss"):
+    cv_results_df_means = cv_results_df.groupby("params").mean()
+    best_hyperparameters_index = cv_results_df_means[minimize_metric] == cv_results_df_means[minimize_metric].min()
+    best_hyperparameters = cv_results_df_means[best_hyperparameters_index].iloc[0]
+    return best_hyperparameters
+
+
+def generate_param_grid_for_k_optimization(best_hyperparameters):
+    best_hyperparameters_dict = eval(best_hyperparameters.name)
+    for key, val in best_hyperparameters_dict.items():
+        best_hyperparameters_dict[key] = [val]
+    # TODO: eliminate hard-coded values for k
+    best_hyperparameters_dict["k"] = list(range(2, 6))
+    best_hyperparameters_dict["alpha"] = [1.0]
+    best_hyperparameters_dict["pre_optimize"] = [0]
+    return best_hyperparameters_dict
+
+
+def map_param_dict_to_param_grid(param_dict):
+    all_params_combinations = list(itertools.product(*param_dict.values()))
+    param_grid = pd.DataFrame(all_params_combinations, columns=param_dict.keys()).to_dict('records')
+    return param_grid
 
 
 def read_param_grid(param_grid_file: str) -> ParamsGridType:
@@ -65,14 +112,19 @@ def run_cv_parallel(params: Tuple[np.ndarray, np.ndarray, int, str, ParamsDictTy
 def run_cv(data: ndarray, weights: ndarray, seed: int, save_path: str, params_dict: ParamsDictType,
            verbose: bool = False) -> pd.Series:
     if verbose:
-        print("=> start run_cv with", locals())
+        print("=> start run_cv with", seed, params_dict)
 
     n_splits = params_dict["n_splits"]
+    pre_optimize = params_dict["pre_optimize"]
+
     cv_folds_results_list = []
     for train_index, val_index in KFold(n_splits=n_splits, shuffle=True, random_state=seed).split(data):
         X_train, X_val = data[train_index], data[val_index]
         W_train, W_val = (weights[train_index], weights[val_index]) if weights else None, None
-        cv_fold_result = cv_fold_step(X_train, X_val, W_train, W_val, seed, save_path, params_dict)
+        if pre_optimize:
+            cv_fold_result = cv_fold_step_pre_optimize(X_train, X_val, W_train, W_val, seed, save_path, params_dict)
+        else:
+            cv_fold_result = cv_fold_step(X_train, X_val, W_train, W_val, seed, save_path, params_dict)
         cv_folds_results_list.append(cv_fold_result)
 
     if verbose:
@@ -88,10 +140,13 @@ def cv_fold_step(X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray], W
                  seed: int, save_path: str, params_dict: ParamsDictType) -> Dict[str, Union[int, float]]:
     # calculate y_pred
     vader = fit_vader(X_train, W_train, seed, save_path, params_dict)
+    # noinspection PyTypeChecker
     test_loss_dict = vader.get_loss(X_val)
     train_reconstruction_loss, train_latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
     test_reconstruction_loss, test_latent_loss = test_loss_dict["reconstruction_loss"], test_loss_dict["latent_loss"]
+    # noinspection PyTypeChecker
     effective_k = len(Counter(vader.cluster(X_train)))
+    # noinspection PyTypeChecker
     y_pred = vader.cluster(X_val)
 
     # calculate total loss
@@ -101,6 +156,7 @@ def cv_fold_step(X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray], W
 
     # calculate y_true
     vader = fit_vader(X_val, W_val, seed, save_path, params_dict)
+    # noinspection PyTypeChecker
     y_true = vader.cluster(X_val)
 
     # evaluate clustering
@@ -126,6 +182,23 @@ def cv_fold_step(X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray], W
     }
 
 
+def cv_fold_step_pre_optimize(X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray], W_val: Optional[ndarray],
+                              seed: int, save_path: str, params_dict: ParamsDictType) -> Dict[str, Union[int, float]]:
+
+    vader = fit_nonvar_vader(X_train, W_train, seed, save_path, params_dict)
+    # noinspection PyTypeChecker
+    test_loss_dict = vader.get_loss(X_val)
+    train_reconstruction_loss, train_latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
+    test_reconstruction_loss, test_latent_loss = test_loss_dict["reconstruction_loss"], test_loss_dict["latent_loss"]
+
+    return {
+        "train_reconstruction_loss": train_reconstruction_loss,
+        "train_latent_loss": train_latent_loss,
+        "test_reconstruction_loss": test_reconstruction_loss,
+        "test_latent_loss": test_latent_loss
+    }
+
+
 def fit_vader(X_train: ndarray, W_train: Optional[ndarray], seed: int, save_path: str,
               params_dict: ParamsDictType) -> VADER:
     k = params_dict["k"]
@@ -134,11 +207,28 @@ def fit_vader(X_train: ndarray, W_train: Optional[ndarray], seed: int, save_path
     batch_size = params_dict["batch_size"]
     alpha = params_dict["alpha"]
     n_epoch = params_dict["n_epoch"]
+    # noinspection PyTypeChecker
     vader = VADER(X_train=X_train, W_train=W_train, save_path=save_path, n_hidden=n_hidden, k=k, seed=seed,
                   learning_rate=learning_rate, recurrent=True, batch_size=batch_size, alpha=alpha)
 
     vader.pre_fit(n_epoch=n_epoch, verbose=False)
     vader.fit(n_epoch=n_epoch, verbose=False)
+    return vader
+
+
+def fit_nonvar_vader(X_train: ndarray, W_train: Optional[ndarray], seed: int, save_path: str,
+                     params_dict: ParamsDictType) -> VADER:
+    k = 1
+    n_hidden = params_dict["n_hidden"]
+    learning_rate = params_dict["learning_rate"]
+    batch_size = params_dict["batch_size"]
+    alpha = 0
+    n_epoch = params_dict["n_epoch"]
+    # noinspection PyTypeChecker
+    vader = VADER(X_train=X_train, W_train=W_train, save_path=save_path, n_hidden=n_hidden, k=k, seed=seed,
+                  learning_rate=learning_rate, recurrent=True, batch_size=batch_size, alpha=alpha)
+
+    vader.pre_fit(n_epoch=n_epoch, verbose=False)
     return vader
 
 
