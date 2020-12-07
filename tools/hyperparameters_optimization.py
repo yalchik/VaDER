@@ -49,7 +49,7 @@ def run_hyperparameters_optimization(input_data_file: str, input_weights_file: s
 
     # output
     cv_results_df = pd.DataFrame(cv_results_list)
-    cv_results_df.to_csv("_" + output_evaluation_path)
+    cv_results_df.to_csv(output_evaluation_path + "_")
 
     # 2nd step (k-optimization) preparation
     best_hyperparameters = extract_best_parameters(cv_results_df)
