@@ -7,6 +7,7 @@ import random
 import pandas as pd
 import multiprocessing as mp
 import numpy as np
+import uuid
 from vader import VADER
 from vader.utils import read_adni_data
 from collections import Counter
@@ -22,57 +23,112 @@ ParamsDictType = Dict[str, Union[int, float, List[Union[int, float]]]]
 ParamsGridType = List[ParamsDictType]
 
 
+def get_nonvar_param_dict() -> ParamsDictType:
+    """OPTIMIZATION STEP 1"""
+    hidden_layer_pows = [0, 1, 2, 3, 4, 5, 6]
+    hidden_layer_pows_of_2 = [2 ** p for p in hidden_layer_pows]
+    list_of_n_hidden_combinations = [[p] for p in hidden_layer_pows_of_2]
+    # (1), (2), (4), ..., (64), (1, 1), (1, 2), ..., (1, 64), ..., (64, 64)
+    for p in itertools.product(hidden_layer_pows_of_2, hidden_layer_pows_of_2):
+        list_of_n_hidden_combinations.append(list(p))
+
+    param_dict = {
+        "k": [1],
+        "n_hidden": list_of_n_hidden_combinations,
+        "learning_rate": [0.0001, 0.001, 0.01, 0.1],
+        "batch_size": [16, 32, 64, 128],
+        "alpha": [0],
+        "n_epoch": [10],
+        "n_perm": [1000],
+        "n_splits": [10],
+        "n_repeats": [20],
+        "pre_optimize": [1]
+    }
+    return param_dict
+
+
+def get_var_param_dict() -> ParamsDictType:
+    """OPTIMIZATION STEP 2"""
+    param_dict = {
+        "k": list(range(2, 16)),
+        "n_hidden": [],
+        "learning_rate": [],
+        "batch_size": [],
+        "alpha": [1.0],
+        "n_epoch": [50],
+        "n_perm": [1000],
+        "n_splits": [2],
+        "n_repeats": [20],
+        "pre_optimize": [0]
+    }
+    return param_dict
+
+
 def run_hyperparameters_optimization(input_data_file: str, input_weights_file: str, input_param_grid_file: str,
                                      input_seed: int, n_repeats: int, n_proc: int, n_sample: int, output_save_path: str,
-                                     output_evaluation_path: str, verbose: bool = False) -> None:
+                                     output_evaluation_path: str, stage: str, verbose: bool = False) -> None:
     if verbose:
         print("=> start run_hyperparameters_optimization with", locals())
 
     # read files
     input_data = read_adni_data(input_data_file)
     input_weights = read_adni_data(input_weights_file) if input_weights_file else None
-    input_param_grid = read_param_grid(input_param_grid_file)
+    step1_output_evaluation_path = output_evaluation_path + "_"
 
-    # randomize grid search
-    if n_sample and n_sample < len(input_param_grid):
-        param_grid = random.sample(input_param_grid, n_sample)
-    else:
-        param_grid = input_param_grid
+    if not stage or stage == "1":
+        if input_param_grid_file:
+            input_param_grid = read_param_grid(input_param_grid_file)
+        else:
+            input_param_grid = map_param_dict_to_param_grid(get_nonvar_param_dict())
 
-    # cross-validation
-    with mp.Pool(n_proc) as pool:
-        cv_results_list = pool.map(run_cv_parallel, [(
-            input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
-            for params_dict in param_grid
-            for _ in range(n_repeats)
-        ])
+        # randomize grid search
+        if n_sample and n_sample < len(input_param_grid):
+            param_grid = random.sample(input_param_grid, n_sample)
+        else:
+            param_grid = input_param_grid
 
-    # output
-    cv_results_df = pd.DataFrame(cv_results_list)
-    cv_results_df.to_csv(output_evaluation_path + "_")
+        # cross-validation
+        with mp.Pool(n_proc) as pool:
+            cv_results_list = pool.map(run_cv_parallel, [(
+                input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
+                for params_dict in param_grid
+                for _ in range(n_repeats)
+            ])
 
-    # 2nd step (k-optimization) preparation
-    best_hyperparameters = extract_best_parameters(cv_results_df)
+        # output
+        cv_results_df = pd.DataFrame(cv_results_list)
+        cv_results_df.to_csv(step1_output_evaluation_path)
+        if verbose:
+            print(f"=> run_hyperparameters_optimization - stage #1 finished. See: {step1_output_evaluation_path}")
+
+    if stage == "2":
+        cv_results_df = pd.read_csv(step1_output_evaluation_path, index_col=0)
+
+    if not stage or stage == "2":
+        # 2nd step (k-optimization) preparation
+        best_hyperparameters = extract_best_parameters(cv_results_df)
+        if verbose:
+            print(f"BEST HYPERPARAMETERS ARE {best_hyperparameters.name}"
+                  f"with loss={best_hyperparameters.test_reconstruction_loss}")
+        best_hyperparameters_dict = generate_param_grid_for_k_optimization(best_hyperparameters)
+        param_grid = map_param_dict_to_param_grid(best_hyperparameters_dict)
+
+        # 2nd step (k-optimization) cross-validation
+        with mp.Pool(n_proc) as pool:
+            cv_results_list = pool.map(run_cv_parallel, [(
+                input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
+                for params_dict in param_grid
+                for _ in range(n_repeats)
+            ])
+
+        # 2nd step (k-optimization) output
+        cv_results_df = pd.DataFrame(cv_results_list)
+        cv_results_df.to_csv(output_evaluation_path)
+        if verbose:
+            print(f"=> run_hyperparameters_optimization - stage #2 finished. See: {output_evaluation_path}")
+
     if verbose:
-        print(f"BEST HYPERPARAMETERS ARE {best_hyperparameters.name}"
-              f"with loss={best_hyperparameters.test_reconstruction_loss}")
-    best_hyperparameters_dict = generate_param_grid_for_k_optimization(best_hyperparameters)
-    param_grid = map_param_dict_to_param_grid(best_hyperparameters_dict)
-
-    # 2nd step (k-optimization) cross-validation
-    with mp.Pool(n_proc) as pool:
-        cv_results_list = pool.map(run_cv_parallel, [(
-            input_data, input_weights, input_seed, output_save_path, params_dict, verbose)
-            for params_dict in param_grid
-            for _ in range(n_repeats)
-        ])
-
-    # 2nd step (k-optimization) output
-    cv_results_df = pd.DataFrame(cv_results_list)
-    cv_results_df.to_csv(output_evaluation_path)
-
-    if verbose:
-        print("<= finish run_hyperparameters_optimization with", cv_results_list)
+        print("<= finish run_hyperparameters_optimization")
 
 
 def extract_best_parameters(cv_results_df, minimize_metric: str = "test_reconstruction_loss"):
@@ -84,13 +140,11 @@ def extract_best_parameters(cv_results_df, minimize_metric: str = "test_reconstr
 
 def generate_param_grid_for_k_optimization(best_hyperparameters):
     best_hyperparameters_dict = eval(best_hyperparameters.name)
-    for key, val in best_hyperparameters_dict.items():
-        best_hyperparameters_dict[key] = [val]
-    # TODO: eliminate hard-coded values for k
-    best_hyperparameters_dict["k"] = list(range(2, 6))
-    best_hyperparameters_dict["alpha"] = [1.0]
-    best_hyperparameters_dict["pre_optimize"] = [0]
-    return best_hyperparameters_dict
+    param_dict = get_var_param_dict()
+    param_dict["n_hidden"] = [best_hyperparameters_dict["n_hidden"]]
+    param_dict["learning_rate"] = [best_hyperparameters_dict["learning_rate"]]
+    param_dict["batch_size"] = [best_hyperparameters_dict["batch_size"]]
+    return param_dict
 
 
 def map_param_dict_to_param_grid(param_dict):
@@ -111,8 +165,9 @@ def run_cv_parallel(params: Tuple[np.ndarray, np.ndarray, int, str, ParamsDictTy
 
 def run_cv(data: ndarray, weights: ndarray, seed: int, save_path: str, params_dict: ParamsDictType,
            verbose: bool = False) -> pd.Series:
+    cv_id = uuid.uuid4()
     if verbose:
-        print("=> start run_cv with", seed, params_dict)
+        print(f"=> start run_cv id={cv_id} with seed={seed}, params_dict={params_dict}")
 
     n_splits = params_dict["n_splits"]
     pre_optimize = params_dict["pre_optimize"]
@@ -127,12 +182,11 @@ def run_cv(data: ndarray, weights: ndarray, seed: int, save_path: str, params_di
             cv_fold_result = cv_fold_step(X_train, X_val, W_train, W_val, seed, save_path, params_dict)
         cv_folds_results_list.append(cv_fold_result)
 
-    if verbose:
-        print("<= finish run_cv with", cv_folds_results_list)
-
     cv_folds_results_df = pd.DataFrame(cv_folds_results_list)
     cv_mean_results_series = cv_folds_results_df.mean()
     cv_mean_results_series["params"] = str(params_dict)
+    if verbose:
+        print(f"<= finish run_cv id={cv_id} with seed={seed}, params_dict={params_dict}")
     return cv_mean_results_series
 
 
@@ -288,12 +342,13 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("input_data_file", type=str, help="a .csv file with input data")
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
-    parser.add_argument("input_param_grid_file", type=str, help="hyperparameters values for grid search")
+    parser.add_argument("--input_param_grid_file", type=str, help="hyperparameters values for grid search")
     parser.add_argument("--input_seed", type=int, help="used both as random_state and VaDER seed")
-    parser.add_argument("--n_repeats", type=int, default=3, help="number of processor units that can be used")
+    parser.add_argument("--n_repeats", type=int, default=1, help="number of repeats")
     parser.add_argument("--n_proc", type=int, help="number of processor units that can be used")
     parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV")
     parser.add_argument("--output_save_path", type=str, help="a directory where all models will be saved")
+    parser.add_argument("--stage", type=str, help="it allows to skip some parts of the process")
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("output_evaluation_path", type=str, help="a .csv file where cross-validation results will be "
                                                                  "written")
@@ -307,7 +362,7 @@ if __name__ == "__main__":
         print("ERROR: weights data file does not exist")
         sys.exit(2)
 
-    if not os.path.exists(args.input_param_grid_file):
+    if args.input_param_grid_file and not os.path.exists(args.input_param_grid_file):
         print("ERROR: param grid file does not exist")
         sys.exit(3)
 
@@ -320,6 +375,7 @@ if __name__ == "__main__":
     n_sample = args.n_sample
     output_save_path = args.output_save_path
     output_evaluation_path = args.output_evaluation_path
+    stage = args.stage
     verbose = args.verbose
 
     run_hyperparameters_optimization(
@@ -332,5 +388,6 @@ if __name__ == "__main__":
         n_sample=n_sample,
         output_save_path=output_save_path,
         output_evaluation_path=output_evaluation_path,
+        stage=stage,
         verbose=verbose
     )
