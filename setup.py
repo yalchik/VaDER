@@ -10,7 +10,7 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/johanndejong/VaDER",
-    packages=["vader"],
+    packages=["vader", "vader.hp_opt"],
     package_dir={'': "tensorflow2"},
     python_requires='>=3.8',
     install_requires=[
