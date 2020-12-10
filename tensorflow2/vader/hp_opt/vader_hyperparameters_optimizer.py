@@ -1,6 +1,12 @@
 import sys
 import json
 import random
+import traceback
+import os
+import os.path
+from time import time
+import logging
+from logging.handlers import RotatingFileHandler
 import scipy.stats
 import pandas as pd
 import multiprocessing as mp
@@ -10,13 +16,13 @@ from typing import List, Dict, Tuple, Union, Optional
 from .param_grid_factory import ParamGridFactory, ParamsGridType
 from .step1_optimization_job import Step1OptimizationJob
 from .step2_optimization_job import Step2OptimizationJob
-from .constants import PARAMS_COLUMN_NAME
+from .constants import PARAMS_COLUMN_NAME, logger, formatter
 
 
 class VADERHyperparametersOptimizer:
     def __init__(self, param_grid_file: Optional[str], param_grid_factory: Optional[ParamGridFactory],
                  seed: Optional[int], n_repeats: int, n_proc: int, n_sample: int, output_model_path: str,
-                 output_cv_path: str, verbose: bool = False):
+                 output_cv_path: str, verbose: bool = False, log_folder: str = None):
         self.verbose = verbose
         self.n_sample = n_sample
         self.n_proc = n_proc
@@ -29,8 +35,17 @@ class VADERHyperparametersOptimizer:
         self._step3_output_cv_path = output_cv_path
         self.input_param_grid = self.read_param_grid(param_grid_file) if param_grid_file else None
         self.param_grid_factory = param_grid_factory
+        self.log_folder = log_folder
+        if not os.path.exists(log_folder):
+            os.makedirs(log_folder)
+        if log_folder:
+            log_file = os.path.join(log_folder, "vader_hyperparameters_optimizer.log")
+            fh = logging.FileHandler(log_file)
+            fh.setLevel(logging.DEBUG)
+            fh.setFormatter(formatter)
+            logger.addHandler(fh)
         if self.verbose:
-            print("=> init VADEROptimizer with", locals())
+            logger.info("init VADEROptimizer with", locals())
 
     @staticmethod
     def __read_param_grid(param_grid_file: str) -> ParamsGridType:
@@ -41,7 +56,7 @@ class VADERHyperparametersOptimizer:
     def run_all_steps(self, input_data_file: str, input_weights_file: str):
         """Main entry function that does all the job"""
         if self.verbose:
-            print("=> start run_all_steps")
+            logger.info("start run_all_steps")
 
         # Stage 0: data loading
         input_data = read_adni_data(input_data_file)
@@ -58,12 +73,12 @@ class VADERHyperparametersOptimizer:
         self.print_optimal_model(step3_results_df, "wilcoxon_prediction_strength")
 
         if self.verbose:
-            print("<= finish run_all_steps")
+            logger.info("finish run_all_steps")
 
     def run_certain_steps(self, input_data_file: str, input_weights_file: str, stage: str):
         """Secondary entry point for case when we need to re-run some certain steps"""
         if self.verbose:
-            print("=> start run_certain_steps")
+            logger.info("start run_certain_steps")
 
         # Stage 0: data loading
         if not stage or stage == "1" or stage == "2":
@@ -95,15 +110,29 @@ class VADERHyperparametersOptimizer:
             print_optimal_model(step3_results_df, "wilcoxon_prediction_strength")
 
         if self.verbose:
-            print("<= finish run_certain_steps")
+            logger.info("finish run_certain_steps")
 
-    @staticmethod
-    def run_cv_step1_job(params_tuple: tuple) -> pd.Series:
-        return Step1OptimizationJob(*params_tuple).run()
+    def run_cv_step1_job(self, params_tuple: tuple) -> pd.Series:
+        job = Step1OptimizationJob(*params_tuple)
+        try:
+            result = job.run()
+        except Exception as err:
+            log_path = os.path.join(self.log_folder, f"{job.cv_id}.log")
+            with open(log_path, "w") as f:
+                f.write(f"Job failed: {job.cv_id} with err={err}, Traceback: {traceback.format_exc()}")
+            result = pd.Series({PARAMS_COLUMN_NAME: str(params_tuple[2])})
+        return result
 
-    @staticmethod
-    def run_cv_step2_job(params_tuple: tuple) -> pd.Series:
-        return Step2OptimizationJob(*params_tuple).run()
+    def run_cv_step2_job(self, params_tuple: tuple) -> pd.Series:
+        job = Step2OptimizationJob(*params_tuple)
+        try:
+            result = job.run()
+        except Exception as err:
+            log_path = os.path.join(self.log_folder, f"{job.cv_id}.log")
+            with open(log_path, "w") as f:
+                f.write(f"Job failed: {job.cv_id} with err={err}, Traceback: {traceback.format_exc()}")
+            result = pd.Series({PARAMS_COLUMN_NAME: str(params_tuple[2])})
+        return result
 
     def optimization_step_1(self, input_data, input_weights):
         """The 1st step of optimization (using non-variational autoencoders)"""
@@ -129,15 +158,15 @@ class VADERHyperparametersOptimizer:
         cv_results_df = pd.DataFrame(cv_results_list)
         cv_results_df.to_csv(output_path)
         if self.verbose:
-            print(f"=> optimization_step_1 finished. See: {output_path}")
+            logger.info(f"optimization_step_1 finished. See: {output_path}")
         return cv_results_df
 
     def optimization_step_2(self, input_data, input_weights, step1_results_df: pd.DataFrame):
         # 2nd step (k-optimization) preparation
         best_hyperparameters = self._extract_best_parameters(step1_results_df)
         if self.verbose:
-            print(f"BEST HYPERPARAMETERS ARE {best_hyperparameters.name} "
-                  f"with loss={best_hyperparameters.test_reconstruction_loss}")
+            logger.info(f"BEST STEP1 HYPERPARAMETERS ARE {best_hyperparameters.name} "
+                        f"with loss={best_hyperparameters.test_reconstruction_loss}")
         best_hyperparameters_dict = self.param_grid_factory.generate_param_dict_for_k_optimization(best_hyperparameters)
         param_grid = ParamGridFactory.map_param_dict_to_param_grid(best_hyperparameters_dict)
 
@@ -154,7 +183,7 @@ class VADERHyperparametersOptimizer:
         cv_results_df = pd.DataFrame(cv_results_list)
         cv_results_df.to_csv(output_path)
         if self.verbose:
-            print(f"=> run_hyperparameters_optimization - stage #2 finished. See: {output_path}")
+            logger.info(f"optimization_step_2 finished. See: {output_path}")
         return cv_results_df
 
     @staticmethod
@@ -189,13 +218,13 @@ class VADERHyperparametersOptimizer:
                                                    group[PRED_STRENGTH_NULL_COLUMN_NAME])
             )
         except ValueError:
-            print(f"Unexpected error:", sys.exc_info()[1])
+            logger.err(f"Unexpected error:", sys.exc_info()[1])
 
         # output
         output_path = self._step3_output_cv_path
         aggregated_df.to_csv(output_path)
         if self.verbose:
-            print(f"=> run_hyperparameters_optimization - stage #3 finished. See: {output_path}")
+            logger.info(f"aggregate_repetitions finished. See: {output_path}")
         return aggregated_df
 
     @staticmethod
@@ -206,4 +235,4 @@ class VADERHyperparametersOptimizer:
             else aggregated_df[performance_metric].max()
         best_parameters_sets = aggregated_df[aggregated_df[performance_metric] == max_performance_metric_value]\
             .index.values
-        print(f"{best_parameters_sets} with best {performance_metric}={max_performance_metric_value}")
+        logger.info(f"OPTIMAL MODEL: {best_parameters_sets} with best {performance_metric}={max_performance_metric_value}")

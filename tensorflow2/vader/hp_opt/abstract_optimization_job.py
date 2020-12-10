@@ -2,7 +2,7 @@ import uuid
 import pandas as pd
 from numpy import ndarray
 from abc import ABC, abstractmethod
-from .constants import ParamsDictType, PARAMS_COLUMN_NAME
+from .constants import ParamsDictType, PARAMS_COLUMN_NAME, logger
 from typing import List, Dict, Union, Optional
 from sklearn.model_selection import KFold
 
@@ -30,7 +30,7 @@ class AbstractOptimizationJob(ABC):
 
     def run(self) -> pd.Series:
         if self.verbose:
-            print(f"=> start run_cv id={self.cv_id} with params_dict={self.params_dict}")
+            logger.info(f"=> start run_cv id={self.cv_id} with params_dict={self.params_dict}")
 
         cv_folds_results_list = []
         data_split = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.seed).split(self.data)
@@ -44,5 +44,5 @@ class AbstractOptimizationJob(ABC):
         cv_mean_results_series = cv_folds_results_df.mean()
         cv_mean_results_series[PARAMS_COLUMN_NAME] = str(self.params_dict)
         if self.verbose:
-            print(f"<= finish run_cv id={self.cv_id} with params_dict={self.params_dict}")
+            logger.info(f"<= finish run_cv id={self.cv_id} with params_dict={self.params_dict}")
         return cv_mean_results_series

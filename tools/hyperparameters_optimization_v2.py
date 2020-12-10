@@ -46,6 +46,7 @@ if __name__ == "__main__":
     parser.add_argument("--output_save_path", type=str, help="a directory where all models will be saved")
     parser.add_argument("--stage", type=str, help="it allows to skip some parts of the process")
     parser.add_argument("--verbose", action='store_true')
+    parser.add_argument("--log_dir", type=str, help="a directory where logs will be written")
     parser.add_argument("output_evaluation_path", type=str, help="a .csv file where cross-validation results will be "
                                                                  "written")
     args = parser.parse_args()
@@ -73,6 +74,7 @@ if __name__ == "__main__":
     output_evaluation_path = args.output_evaluation_path
     stage = args.stage
     verbose = args.verbose
+    log_dir = args.log_dir
 
     optimizer = VADERHyperparametersOptimizer(
         param_grid_file=input_param_grid_file,
@@ -83,7 +85,8 @@ if __name__ == "__main__":
         n_sample=n_sample,
         output_model_path=output_save_path,
         output_cv_path=output_evaluation_path,
-        verbose=verbose
+        verbose=verbose,
+        log_folder=log_dir
     )
     if stage:
         optimizer.run_certain_steps(input_data_file, input_weights_file, stage)
