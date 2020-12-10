@@ -145,6 +145,10 @@ class VADERHyperparametersOptimizer:
         else:
             param_grid = self.input_param_grid
 
+        if self.verbose:
+            number_of_jobs = self.n_repeats * len(param_grid)
+            logger.info(f"Number of step 1 jobs: {number_of_jobs}")
+
         # cross-validation
         with mp.Pool(self.n_proc) as pool:
             cv_results_list = pool.map(self.run_cv_step1_job, [
@@ -169,6 +173,10 @@ class VADERHyperparametersOptimizer:
                         f"with loss={best_hyperparameters.test_reconstruction_loss}")
         best_hyperparameters_dict = self.param_grid_factory.generate_param_dict_for_k_optimization(best_hyperparameters)
         param_grid = ParamGridFactory.map_param_dict_to_param_grid(best_hyperparameters_dict)
+
+        if self.verbose:
+            number_of_jobs = self.n_repeats * len(param_grid)
+            logger.info(f"Number of step 2 jobs: {number_of_jobs}")
 
         # 2nd step (k-optimization) cross-validation
         with mp.Pool(self.n_proc) as pool:
