@@ -226,7 +226,7 @@ class VADERHyperparametersOptimizer:
                                                    group[PRED_STRENGTH_NULL_COLUMN_NAME])
             )
         except ValueError:
-            logger.err(f"Unexpected error:", sys.exc_info()[1])
+            logger.error(f"Unexpected error:", sys.exc_info()[1])
 
         # output
         output_path = self._step3_output_cv_path
