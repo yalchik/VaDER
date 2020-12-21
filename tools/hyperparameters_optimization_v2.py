@@ -33,6 +33,19 @@ class MyParamGridFactory(ParamGridFactory):
         }
         return param_dict
 
+    def get_full_param_dict(self) -> ParamsDictType:
+        """Parameter dictionary for the full optimization"""
+        param_dict = {
+            "k": list(range(2, 5)),
+            "learning_rate": [0.001, 0.01],
+            "batch_size": [16, 64],
+            "alpha": [1],
+            "n_epoch": [10],
+            "n_splits": [2],
+            "n_perm": [10]
+        }
+        return param_dict
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -47,6 +60,7 @@ if __name__ == "__main__":
     parser.add_argument("--stage", type=str, help="it allows to skip some parts of the process")
     parser.add_argument("--verbose", action='store_true')
     parser.add_argument("--log_dir", type=str, help="a directory where logs will be written")
+    parser.add_argument("--full", action='store_true')
     parser.add_argument("output_evaluation_path", type=str, help="a .csv file where cross-validation results will be "
                                                                  "written")
     args = parser.parse_args()
@@ -75,6 +89,7 @@ if __name__ == "__main__":
     stage = args.stage
     verbose = args.verbose
     log_dir = args.log_dir
+    full_optimization = args.full
 
     optimizer = VADERHyperparametersOptimizer(
         param_grid_file=input_param_grid_file,
@@ -86,7 +101,8 @@ if __name__ == "__main__":
         output_model_path=output_save_path,
         output_cv_path=output_evaluation_path,
         verbose=verbose,
-        log_folder=log_dir
+        log_folder=log_dir,
+        full_optimization=full_optimization
     )
     if stage:
         optimizer.run_certain_steps(input_data_file, input_weights_file, stage)

@@ -12,6 +12,9 @@ class ParamGridFactory:
     def get_var_param_grid(self) -> ParamsGridType:
         return ParamGridFactory.map_param_dict_to_param_grid(self.get_var_param_dict())
 
+    def get_full_param_grid(self) -> ParamsGridType:
+        return ParamGridFactory.map_param_dict_to_param_grid(self.get_full_param_dict())
+
     def generate_param_dict_for_k_optimization(self, best_hyperparameters):
         best_hyperparameters_dict = eval(best_hyperparameters.name)
         param_dict = self.get_var_param_dict()
@@ -41,6 +44,19 @@ class ParamGridFactory:
             "batch_size": [16],
             "alpha": [1.0],
             "n_epoch": [50],
+            "n_splits": [2],
+            "n_perm": [1000]
+        }
+        return param_dict
+
+    def get_full_param_dict(self) -> ParamsDictType:
+        """Parameter dictionary for the full optimization"""
+        param_dict = {
+            "k": list(range(2, 16)),
+            "learning_rate": [0.0001, 0.001, 0.01, 0.1],
+            "batch_size": [16, 32, 64, 128],
+            "alpha": [1],
+            "n_epoch": [20],
             "n_splits": [2],
             "n_perm": [1000]
         }
