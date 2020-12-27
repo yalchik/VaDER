@@ -28,12 +28,10 @@ class ParamGridFactory:
         """Parameter dictionary for the full optimization"""
         param_dict = {
             "k": list(range(2, 16)),
+            "n_hidden": self.gen_list_of_combinations([0, 1, 2, 3, 4, 5, 6]),
             "learning_rate": [0.0001, 0.001, 0.01, 0.1],
             "batch_size": [16, 32, 64, 128],
-            "alpha": [1],
-            "n_epoch": [20],
-            "n_splits": [2],
-            "n_perm": [1000]
+            "alpha": [1.0]
         }
         return param_dict
 
@@ -42,3 +40,12 @@ class ParamGridFactory:
         all_params_combinations = list(itertools.product(*param_dict.values()))
         param_grid = pd.DataFrame(all_params_combinations, columns=param_dict.keys()).to_dict('records')
         return param_grid
+
+    @staticmethod
+    def gen_list_of_combinations(powers: List[int]) -> List[List[int]]:
+        powers_of_2 = [2 ** p for p in powers]
+        list_of_n_hidden_combinations = [[p] for p in powers_of_2]
+        # (1), (2), (4), ..., (64), (1, 1), (1, 2), ..., (1, 64), ..., (64, 64)
+        for p in itertools.product(powers_of_2, powers_of_2):
+            list_of_n_hidden_combinations.append(list(p))
+        return list_of_n_hidden_combinations
