@@ -4,7 +4,7 @@ from .abstract_optimization_job import AbstractOptimizationJob
 from vader import VADER
 
 
-class Step1OptimizationJob(AbstractOptimizationJob):
+class PreFitOptimizationJob(AbstractOptimizationJob):
 
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
                       W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:

@@ -8,10 +8,9 @@ import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 from matplotlib.lines import Line2D
 from vader.hp_opt.clustering_utils import ClusteringUtils
-from typing import Type, TypeVar, Tuple
+from typing import List, Type, TypeVar, Tuple
 
 CVResultsAggregatorType = TypeVar('CVResultsAggregatorType', bound='CVResultsAggregator')
-params = ["n_layer", "alpha", "learning_rate", "batch_size", "n_hidden1", "n_hidden2"]
 
 
 class CVResultsAggregator:
@@ -50,9 +49,9 @@ class CVResultsAggregator:
         return fig
 
     @classmethod
-    def from_files(cls: Type[CVResultsAggregatorType], input_dir: str) -> CVResultsAggregatorType:
+    def from_files(cls: Type[CVResultsAggregatorType], input_dir: str, params: List[str]) -> CVResultsAggregatorType:
         obj = cls()
-        obj.df_params, obj.df_eff_k, obj.df_pred_str, obj.df_pred_str_null, obj.num_of_repetitions = cls.read_data(input_dir)
+        obj.df_params, obj.df_eff_k, obj.df_pred_str, obj.df_pred_str_null, obj.num_of_repetitions = cls.read_data(input_dir, params)
         obj.num_of_hp_sets = len(obj.df_eff_k) // obj.num_of_repetitions
         obj.repetitions_matrix = np.stack(
             np.split(np.arange(obj.num_of_hp_sets * obj.num_of_repetitions), obj.num_of_repetitions)
@@ -64,7 +63,7 @@ class CVResultsAggregator:
         return obj
 
     @staticmethod
-    def read_data(input_folder: str) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, int]:
+    def read_data(input_folder: str, params: List[str]) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame, int]:
         df_eff_k_list = []
         df_pred_str_list = []
         df_pred_str_null_list = []
@@ -188,6 +187,15 @@ class CVResultsAggregator:
         ax.plot(abline_vals, abline_vals, color="grey", linestyle="--")
 
 
+# if __name__ == "__main__":
+#     params = ["n_layer", "alpha", "learning_rate", "batch_size", "n_hidden1", "n_hidden2"]
+#     aggregator = CVResultsAggregator.from_files("d:\\workspaces\\vader_data\\step2", params)
+#     aggregator.plot_to_pdf("d:\\workspaces\\vader_results\\ref_test.pdf")
+#     aggregator.save_to_csv("d:\\workspaces\\vader_results\\ref_test.csv")
+
 if __name__ == "__main__":
-    aggregator = CVResultsAggregator.from_files("d:\\workspaces\\@Jupyter\\VADER\\step2")
-    aggregator.plot("test.pdf")
+    params = ["n_hidden", "learning_rate", "batch_size", "alpha"]
+    aggregator = CVResultsAggregator.from_files("d:\\workspaces\\vader_results\\csv", params)
+    aggregator.plot_to_pdf("d:\\workspaces\\vader_results\\test.pdf")
+    aggregator.save_to_csv("d:\\workspaces\\vader_results\\test.csv")
+
