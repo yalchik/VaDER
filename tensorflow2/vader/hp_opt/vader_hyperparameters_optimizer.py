@@ -35,6 +35,9 @@ class VADERHyperparametersOptimizer:
         self.n_perm = n_perm
         self.seed = seed
         self.output_cv_path = output_cv_path
+        self.output_csv_path = os.path.join(self.output_cv_path, "csv")
+        if not os.path.exists(self.output_csv_path):
+            os.makedirs(self.output_csv_path)
         self.hyperparameters = [key for key in param_grid_factory.get_full_param_dict().keys() if key != "k"]
         self.param_grid = param_grid_factory.get_randomized_param_grid(n_sample)
         self.log_dir = log_dir
@@ -54,9 +57,8 @@ class VADERHyperparametersOptimizer:
         if self.verbose:
             logger.info("start run_all_steps")
 
-        output_csv_path = os.path.join(self.output_cv_path, "csv")
-        _ = self.optimization_step_full(input_data, input_weights, output_csv_path)
-        aggregator = CVResultsAggregator.from_files(output_csv_path, self.hyperparameters)
+        _ = self.optimization_step_full(input_data, input_weights, self.output_csv_path)
+        aggregator = CVResultsAggregator.from_files(self.output_csv_path, self.hyperparameters)
         aggregator.plot_to_pdf(os.path.join(self.output_cv_path, "grid_search_report.pdf"))
         aggregator.save_to_csv(os.path.join(self.output_cv_path, "grid_search_diffs.csv"))
 
