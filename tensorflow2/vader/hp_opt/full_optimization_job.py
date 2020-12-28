@@ -67,7 +67,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
         test_reconstruction_loss_repeats = []
         test_latent_loss_repeats = []
         for i in range(self.n_consensus):
-            self.seed = int(str(self.seed) + str(i))
+            self.seed = int(str(self.seed) + str(i)) if self.seed else None
             (
                 y_pred,
                 effective_k,
