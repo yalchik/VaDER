@@ -52,11 +52,13 @@ def read_adni_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
 def read_nacc_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
     df = pd.read_csv(filename, index_col=0)
     required_features_list = ["NACCMMSE", "CDRSUM", "NACCFAQ"]
+    features_df = df[required_features_list]
+    df[required_features_list] = (features_df - features_df.mean()) / features_df.std()
     required_time_points_list = [str(i) for i in range(1, df["NACCVNUM"].max()+1)]
-    dfp = df.pivot(index="NACCID", columns="NACCVNUM", values=required_features_list)
-    dfp.columns = [f"{col[0]}_{col[1]}" for col in dfp.columns.values]
+    pivoted_normalized_df = df.pivot(index="NACCID", columns="NACCVNUM", values=required_features_list)
+    pivoted_normalized_df.columns = [f"{col[0]}_{col[1]}" for col in pivoted_normalized_df.columns.values]
     x_tensor, w_tensor, _ = df_to_numpy_tensor_and_class_vector(
-        dfp,
+        pivoted_normalized_df,
         required_features_list=required_features_list,
         required_time_points_list=required_time_points_list
     )
