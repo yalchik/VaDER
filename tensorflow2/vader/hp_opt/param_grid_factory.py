@@ -27,7 +27,7 @@ class ParamGridFactory:
     def get_full_param_dict(self) -> ParamsDictType:
         """Parameter dictionary for the full optimization"""
         param_dict = {
-            "k": list(range(2, 16)),
+            "k": list(range(2, 11)),
             "n_hidden": self.gen_list_of_combinations([0, 1, 2, 3, 4, 5, 6]),
             "learning_rate": [0.0001, 0.001, 0.01, 0.1],
             "batch_size": [16, 32, 64, 128],
