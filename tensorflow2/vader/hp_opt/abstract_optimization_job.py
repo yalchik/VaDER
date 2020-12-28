@@ -38,7 +38,10 @@ class AbstractOptimizationJob(ABC):
         data_split = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.seed).split(self.data)
         for train_index, val_index in data_split:
             X_train, X_val = self.data[train_index], self.data[val_index]
-            W_train, W_val = (self.weights[train_index], self.weights[val_index]) if self.weights else None, None
+            if self.weights is not None:
+                W_train, W_val = self.weights[train_index], self.weights[val_index]
+            else:
+                W_train, W_val = None, None
             cv_fold_result = self._cv_fold_step(X_train, X_val, W_train, W_val)
             cv_folds_results_list.append(cv_fold_result)
 
