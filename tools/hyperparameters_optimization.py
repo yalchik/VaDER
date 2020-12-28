@@ -3,7 +3,8 @@ import sys
 import argparse
 import numpy as np
 import multiprocessing as mp
-from vader.utils import read_adni_data
+from typing import Tuple
+from vader.utils import read_adni_data, read_nacc_data
 from vader.hp_opt import VADERHyperparametersOptimizer, ParamGridFactory
 from vader.hp_opt.setup import ParamsDictType
 
@@ -24,7 +25,7 @@ class MyParamGridFactory(ParamGridFactory):
         return param_dict
 
 
-def read_custom_data(filename: str) -> np.ndarray:
+def read_custom_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
     """
     EDIT THIS FUNCTION TO SUPPORT THE "custom" DATA TYPE.
 
@@ -32,8 +33,9 @@ def read_custom_data(filename: str) -> np.ndarray:
       1st dimension is samples,
       2nd dimension is time points,
       3rd dimension is feature vectors.
+    Second output tensor should have the same structure and define missing values with 0-s
     @param filename: input data file in .csv format.
-    @return: tensor.
+    @return: X tensor, W tensor.
     """
     raise NotImplementedError
 
@@ -46,7 +48,7 @@ if __name__ == "__main__":
     parser.add_argument("--input_data_file", type=str, help="a .csv file with input data", required=True)
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
     parser.add_argument("--input_seed", type=int, help="used both as random_state and VaDER seed")
-    parser.add_argument("--input_data_type", choices=["ADNI", "PPMI", "custom"], help="data type", required=True)
+    parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "custom"], help="data type", required=True)
     parser.add_argument("--n_repeats", type=int, default=1, help="number of repeats")
     parser.add_argument("--n_proc", type=int, help="number of processor units that can be used")
     parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV")
@@ -69,14 +71,17 @@ if __name__ == "__main__":
 
     input_data, input_weights = None, None
     if args.input_data_type == "ADNI":
-        input_data = read_adni_data(args.input_data_file)
-        input_weights = read_adni_data(args.input_weights_file) if args.input_weights_file else None
+        input_data, weights = read_adni_data(args.input_data_file)
+        input_weights = read_adni_data(args.input_weights_file) if args.input_weights_file else weights
+    elif args.input_data_type == "NACC":
+        input_data, weights = read_nacc_data(args.input_data_file)
+        input_weights = read_nacc_data(args.input_weights_file) if args.input_weights_file else weights
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
         exit(3)
     elif args.input_data_type == "custom":
-        input_data = read_custom_data(args.input_data_file)
-        input_weights = read_custom_data(args.input_weights_file) if args.input_weights_file else None
+        input_data, weights = read_custom_data(args.input_data_file)
+        input_weights = read_custom_data(args.input_weights_file) if args.input_weights_file else weights
     else:
         print("ERROR: Unknown data type.")
         exit(4)
