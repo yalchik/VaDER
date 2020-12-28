@@ -86,6 +86,7 @@ class VADERHyperparametersOptimizer:
 
         # output
         cv_results_df = pd.DataFrame(cv_results_list)
+        cv_results_df.to_csv(os.path.join(self.output_cv_path, f"grid_search_all.csv"), index=False)
         cv_results_df_list = np.array_split(cv_results_df, self.n_repeats)
         for i in range(self.n_repeats):
             output_file = os.path.join(output_folder, f"grid_search_{i}.csv")
