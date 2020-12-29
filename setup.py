@@ -12,11 +12,12 @@ setuptools.setup(
     url="https://github.com/johanndejong/VaDER",
     packages=["vader", "vader.hp_opt"],
     package_dir={'': "tensorflow2"},
-    python_requires='>=3.8',
+    python_requires='>=3.7',
     install_requires=[
         "numpy",
         "scipy",
         "sklearn",
         "tensorflow",
+        "matplotlib"
     ],
 )
