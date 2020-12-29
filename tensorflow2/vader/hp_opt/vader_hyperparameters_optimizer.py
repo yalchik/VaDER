@@ -32,9 +32,9 @@ class VADERHyperparametersOptimizer:
         self.output_repeats_dir = os.path.join(self.output_folder, "csv_repeats")
         self.failed_jobs_dir = os.path.join(self.output_folder, "failed_jobs")
         if not os.path.exists(self.output_repeats_dir):
-            os.makedirs(self.output_repeats_dir)
+            os.makedirs(self.output_repeats_dir, exist_ok=True)
         if not os.path.exists(self.failed_jobs_dir):
-            os.makedirs(self.failed_jobs_dir)
+            os.makedirs(self.failed_jobs_dir, exist_ok=True)
 
         # Configure param grid
         if not param_grid_factory:
