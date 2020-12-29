@@ -3,6 +3,8 @@ import pandas as pd
 from numpy import ndarray
 from scipy.special import comb
 from sklearn.metrics.cluster import adjusted_rand_score
+from scipy.cluster.hierarchy import fcluster, linkage
+from scipy.spatial.distance import squareform
 
 
 class ClusteringUtils:
@@ -83,7 +85,7 @@ class ClusteringUtils:
     @staticmethod
     def calc_linkage(distMatrix):
         # convert the redundant n*n square matrix form into a condensed nC2 array
-        distArray = ssd.squareform(distMatrix)
+        distArray = squareform(distMatrix)
         Z = linkage(distArray, 'complete')
         return Z
 
