@@ -185,17 +185,3 @@ class CVResultsAggregator:
             ax.set_ylim(1, df_eff_k.columns.max())
         abline_vals = np.array(ax.get_xlim())
         ax.plot(abline_vals, abline_vals, color="grey", linestyle="--")
-
-
-# if __name__ == "__main__":
-#     params = ["n_layer", "alpha", "learning_rate", "batch_size", "n_hidden1", "n_hidden2"]
-#     aggregator = CVResultsAggregator.from_files("d:\\workspaces\\vader_data\\step2", params)
-#     aggregator.plot_to_pdf("d:\\workspaces\\vader_results\\ref_test.pdf")
-#     aggregator.save_to_csv("d:\\workspaces\\vader_results\\ref_test.csv")
-
-if __name__ == "__main__":
-    params = ["n_hidden", "learning_rate", "batch_size", "alpha"]
-    aggregator = CVResultsAggregator.from_files("d:\\workspaces\\vader_results\\csv", params)
-    aggregator.plot_to_pdf("d:\\workspaces\\vader_results\\test.pdf")
-    aggregator.save_to_csv("d:\\workspaces\\vader_results\\test.csv")
-

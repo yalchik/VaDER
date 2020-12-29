@@ -2,7 +2,7 @@ import random
 import itertools
 import pandas as pd
 from typing import List, Dict, Tuple, Union, Optional
-from .setup import ParamsDictType, ParamsGridType
+from .common import ParamsDictType, ParamsGridType
 
 
 class ParamGridFactory:
@@ -18,7 +18,9 @@ class ParamGridFactory:
         randomized_params_combinations = [
             (c[0], *c[1]) for c in itertools.product(k_list, randomized_non_k_params_combinations)
         ]
-        randomized_param_grid = pd.DataFrame(randomized_params_combinations, columns=param_dict.keys()).to_dict('records')
+        randomized_param_grid = pd.DataFrame(
+            randomized_params_combinations, columns=param_dict.keys()
+        ).to_dict('records')
         return randomized_param_grid
 
     def get_full_param_grid(self) -> ParamsGridType:

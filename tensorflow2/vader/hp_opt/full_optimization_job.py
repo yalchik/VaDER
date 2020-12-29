@@ -1,14 +1,11 @@
+import numpy as np
 from numpy import ndarray
 from collections import Counter
 from typing import Dict, Union, Optional
-from .abstract_optimization_job import AbstractOptimizationJob
-from .clustering_utils import ClusteringUtils
 from vader import VADER
-
-import numpy as np
-import scipy.spatial.distance as ssd
-from scipy.cluster.hierarchy import dendrogram, linkage
-from scipy.cluster.hierarchy import fcluster
+from vader.hp_opt.abstract_optimization_job import AbstractOptimizationJob
+from vader.hp_opt.clustering_utils import ClusteringUtils
+from vader.hp_opt.common import ClusteringType
 
 
 class FullOptimizationJob(AbstractOptimizationJob):
@@ -59,7 +56,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
             "prediction_strength_null": permuted_clustering_evaluation_metrics["prediction_strength"],
         }
 
-    def _consensus_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray]):
+    def _consensus_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray]) -> tuple:
         y_pred_repeats = []
         effective_k_repeats = []
         train_reconstruction_loss_repeats = []
@@ -82,8 +79,8 @@ class FullOptimizationJob(AbstractOptimizationJob):
             train_latent_loss_repeats.append(train_latent_loss)
             test_reconstruction_loss_repeats.append(test_reconstruction_loss)
             test_latent_loss_repeats.append(test_latent_loss)
-        y_pred = ClusteringUtils.consensus_clustering(y_pred_repeats)
         effective_k = np.mean(effective_k_repeats)
+        y_pred = ClusteringUtils.consensus_clustering(y_pred_repeats, round(float(effective_k)))
         train_reconstruction_loss = np.mean(train_reconstruction_loss_repeats)
         train_latent_loss = np.mean(train_latent_loss_repeats)
         test_reconstruction_loss = np.mean(test_reconstruction_loss_repeats)
@@ -97,7 +94,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
             test_latent_loss
         )
 
-    def _single_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray]):
+    def _single_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray]) -> tuple:
         # calculate y_pred
         vader = self._fit_vader(X_train, W_train)
         # noinspection PyTypeChecker

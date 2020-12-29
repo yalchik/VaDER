@@ -5,9 +5,14 @@ from scipy.special import comb
 from sklearn.metrics.cluster import adjusted_rand_score
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial.distance import squareform
+from vader.hp_opt.common import ClusteringType
+from typing import List, Tuple
 
 
 class ClusteringUtils:
+    """Contains static methods that help in the clusterization process."""
+
+    METRICS_LIST = ['adj_rand_index', 'rand_index', 'prediction_strength']
 
     @staticmethod
     def calc_rand_index(y_pred: ndarray, y_true: ndarray) -> float:
@@ -49,7 +54,7 @@ class ClusteringUtils:
         return min(pr_str_vector)
 
     @staticmethod
-    def calc_permuted_clustering_evaluation_metrics(y_pred: ndarray, y_true: ndarray, n_perm: int):
+    def calc_permuted_clustering_evaluation_metrics(y_pred: ndarray, y_true: ndarray, n_perm: int) -> pd.Series:
         metrics_dict = {}
         for i in range(n_perm):
             sample_y_pred = np.random.permutation(y_pred)
@@ -57,19 +62,18 @@ class ClusteringUtils:
             rand_index = ClusteringUtils.calc_rand_index(sample_y_pred, y_true)
             prediction_strength = ClusteringUtils.calc_prediction_strength(sample_y_pred, y_true)
             metrics_dict[i] = [adj_rand_index, rand_index, prediction_strength]
-        metrics_df = pd.DataFrame.from_dict(metrics_dict, orient='index',
-                                            columns=['adj_rand_index', 'rand_index', 'prediction_strength'])
+        metrics_df = pd.DataFrame.from_dict(metrics_dict, orient='index', columns=ClusteringUtils.METRICS_LIST)
         return metrics_df.mean()
 
     @staticmethod
-    def consensus_clustering(clusterings_list):
+    def consensus_clustering(clusterings_list: List[ClusteringType], num_of_clusters: int) -> ClusteringType:
         distMatrix = ClusteringUtils.calc_distance_matrix(clusterings_list)
         items_linkage = ClusteringUtils.calc_linkage(distMatrix)
-        clustering = list(fcluster(items_linkage, 3, criterion='maxclust'))
+        clustering = list(fcluster(items_linkage, num_of_clusters, criterion='maxclust'))
         return clustering
 
     @staticmethod
-    def calc_distance_matrix(clusterings_list):
+    def calc_distance_matrix(clusterings_list: List[ClusteringType]) -> ndarray:
         # TODO: optimize the performance
         m = len(clusterings_list)
         n = len(clusterings_list[0])
@@ -79,23 +83,23 @@ class ClusteringUtils:
                 for j, y_item_2 in enumerate(y_pred):
                     if y_item_1 == y_item_2:
                         M[i, j] += 1
-        distMatrix = 1 - M / m
-        return distMatrix
+        distance_matrix = 1 - M / m
+        return distance_matrix
 
     @staticmethod
-    def calc_linkage(distMatrix):
-        # convert the redundant n*n square matrix form into a condensed nC2 array
-        distArray = squareform(distMatrix)
-        Z = linkage(distArray, 'complete')
-        return Z
+    def calc_linkage(distance_matrix: ndarray) -> ndarray:
+        distance_array = squareform(distance_matrix)  # convert n*n square matrix form into a condensed nC2 array
+        linkage_array = linkage(distance_array, 'complete')
+        return linkage_array
 
     @staticmethod
-    def std_diff(df):
+    def std_diff(df: pd.DataFrame) -> pd.Series:
+        """Translation of the 'colSdDiff' function from the R package 'matrixStats'"""
         std_diff = df.diff().std() / np.sqrt(2)
         return std_diff
 
     @staticmethod
-    def calc_distribution(df):
+    def calc_distribution(df: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
         mu = df.mean()
         sigma = ClusteringUtils.std_diff(df) / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
         return mu, sigma
