@@ -12,6 +12,7 @@ from vader.hp_opt.clustering_utils import ClusteringUtils
 if __name__ == "__main__":
     """
     The script runs VaDER model with a given set of hyperparameters on given data.
+    It computes clustering for the given data and writes it to a report file.
     
     Example:
     python run_vader.py --input_data_file=../data/ADNI/Xnorm.csv
