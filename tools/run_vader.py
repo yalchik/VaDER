@@ -1,11 +1,11 @@
 import os
 import sys
 import argparse
-import vader.utils
+import vader.data_utils
 import numpy as np
 from collections import Counter
 from vader import VADER
-from vader.utils import read_adni_data, read_nacc_data
+from vader.data_utils import read_adni_data, read_nacc_data
 from vader.hp_opt.clustering_utils import ClusteringUtils
 
 
@@ -69,6 +69,7 @@ if __name__ == "__main__":
     for i in range(args.n_repeats):
         if args.n_consensus and args.n_consensus > 1:
             y_pred_repeats = []
+            effective_k_repeats = []
             train_reconstruction_loss_repeats = []
             train_latent_loss_repeats = []
             for j in range(args.n_consensus):
@@ -79,10 +80,15 @@ if __name__ == "__main__":
                               seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
                 vader.pre_fit(n_epoch=10, verbose=False)
                 vader.fit(n_epoch=args.n_epoch, verbose=False)
-                y_pred_repeats.append(vader.cluster(input_data))
+                clustering = vader.cluster(input_data)
+                effective_k = len(Counter(clustering))
+                y_pred_repeats.append(clustering)
+                effective_k_repeats.append(effective_k)
                 train_reconstruction_loss_repeats.append(vader.reconstruction_loss[-1])
                 train_latent_loss_repeats.append(vader.latent_loss[-1])
-            clustering = ClusteringUtils.consensus_clustering(y_pred_repeats)
+            effective_k = np.mean(effective_k_repeats)
+            num_of_clusters = round(float(effective_k))
+            clustering = ClusteringUtils.consensus_clustering(y_pred_repeats, num_of_clusters)
             reconstruction_loss = np.mean(train_reconstruction_loss_repeats)
             latent_loss = np.mean(train_latent_loss_repeats)
         else:

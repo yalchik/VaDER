@@ -1,7 +1,7 @@
-from vader.utils import generate_x_y_for_nonrecur, generate_x_w_y
+from vader.data_utils import generate_x_y_for_nonrecur, generate_x_w_y
 
 
-class TestUtils:
+class TestDataUtils:
 
     def test_generate_x_w_y(self):
         X_train, W_train, y_train = generate_x_w_y(7, 400)

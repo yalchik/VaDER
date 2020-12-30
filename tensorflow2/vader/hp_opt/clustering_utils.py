@@ -6,7 +6,7 @@ from sklearn.metrics.cluster import adjusted_rand_score
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial.distance import squareform
 from vader.hp_opt.common import ClusteringType
-from typing import List, Tuple
+from typing import List, Tuple, Union
 
 
 class ClusteringUtils:
@@ -15,7 +15,7 @@ class ClusteringUtils:
     METRICS_LIST = ['adj_rand_index', 'rand_index', 'prediction_strength']
 
     @staticmethod
-    def calc_rand_index(y_pred: ndarray, y_true: ndarray) -> float:
+    def calc_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -> float:
         clusters = y_true
         classes = y_pred
         # See: https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
@@ -30,16 +30,16 @@ class ClusteringUtils:
         return (tp + tn) / (tp + fp + fn + tn)
 
     @staticmethod
-    def calc_adj_rand_index(y_pred: ndarray, y_true: ndarray) -> float:
+    def calc_adj_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -> float:
         return adjusted_rand_score(y_true, y_pred)
 
     @staticmethod
-    def calc_prediction_strength(y_pred: ndarray, y_true: ndarray) -> float:
+    def calc_prediction_strength(y_pred: ClusteringType, y_true: ClusteringType) -> float:
         # TODO: investigate strange behaviour (e.g. [1,1,2,2,3], [1,1,2,2,3])
         return ClusteringUtils.calc_prediction_strength_legacy(y_pred, y_true)
 
     @staticmethod
-    def calc_prediction_strength_legacy(p: ndarray, q: ndarray) -> float:
+    def calc_prediction_strength_legacy(p: ClusteringType, q: ClusteringType) -> float:
         def f(y: ndarray) -> ndarray:
             m = [y for _ in range(len(y))]
             return m == np.transpose(m)
@@ -54,7 +54,8 @@ class ClusteringUtils:
         return min(pr_str_vector)
 
     @staticmethod
-    def calc_permuted_clustering_evaluation_metrics(y_pred: ndarray, y_true: ndarray, n_perm: int) -> pd.Series:
+    def calc_permuted_clustering_evaluation_metrics(y_pred: ClusteringType, y_true: ClusteringType, n_perm: int) \
+            -> pd.Series:
         metrics_dict = {}
         for i in range(n_perm):
             sample_y_pred = np.random.permutation(y_pred)
@@ -87,7 +88,7 @@ class ClusteringUtils:
         return distance_matrix
 
     @staticmethod
-    def calc_linkage(distance_matrix: ndarray) -> ndarray:
+    def calc_linkage(distance_matrix: Union[ndarray, List[List[float]]]) -> ndarray:
         distance_array = squareform(distance_matrix)  # convert n*n square matrix form into a condensed nC2 array
         linkage_array = linkage(distance_array, 'complete')
         return linkage_array

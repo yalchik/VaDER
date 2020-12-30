@@ -1,4 +1,4 @@
-from vader.utils import generate_x_w_y
+from vader.data_utils import generate_x_w_y
 from vader.vader_sklearn import VaDERSklearnClustering
 from sklearn.model_selection import GridSearchCV
 

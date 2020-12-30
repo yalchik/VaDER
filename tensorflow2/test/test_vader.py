@@ -2,9 +2,9 @@ import os
 import sys
 import pickle
 import tensorflow as tf
-import vader.utils
+import vader.data_utils
 from vader import VADER
-from vader.utils import generate_x_y_for_nonrecur, generate_x_w_y
+from vader.data_utils import generate_x_y_for_nonrecur, generate_x_w_y
 
 
 class TestVADER:

@@ -132,7 +132,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
 
 
 if __name__ == "__main__":
-    from vader.utils import read_adni_data, read_nacc_data
+    from vader.data_utils import read_adni_data, read_nacc_data
 
     input_data_file = "d:/workspaces/vader_data/ADNI/Xnorm.csv"
     input_data, input_weights = read_adni_data(input_data_file)

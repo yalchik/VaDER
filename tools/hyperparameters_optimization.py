@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 from typing import Tuple
-from vader.utils import read_adni_data, read_nacc_data
+from vader.data_utils import read_adni_data, read_nacc_data
 from vader.hp_opt import VADERHyperparametersOptimizer, ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
 
@@ -51,9 +51,7 @@ if __name__ == "__main__":
     Example:
     python hyperparameters_optimization.py --input_data_file=../data/ADNI/Xnorm.csv --input_data_type=ADNI
                                            --n_repeats=5 --n_sample=5 --n_consensus=1 --n_epoch=10
-                                           --n_splits=2 --n_perm=10 --verbose
-                                           --output_folder=../vader_results 
-                                           --log_dir=../vader_logs
+                                           --n_splits=2 --n_perm=10 --output_folder=../vader_results 
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, required=True, help=".csv file with input data")
