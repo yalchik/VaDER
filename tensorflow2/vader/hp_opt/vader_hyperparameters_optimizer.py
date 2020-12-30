@@ -1,22 +1,21 @@
 import os
-import logging
 import traceback
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from vader.hp_opt import common
-from typing import List, Dict, Tuple, Union, Optional
-from .param_grid_factory import ParamGridFactory, ParamsGridType
-from .full_optimization_job import FullOptimizationJob
-from .cv_results_aggregator import CVResultsAggregator
+from typing import List, Optional
+from vader.hp_opt.param_grid_factory import ParamGridFactory
+from vader.hp_opt.job.full_optimization_job import FullOptimizationJob
+from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
 
 
 class VADERHyperparametersOptimizer:
+    """Handles the whole VaDER hyperparameters optimization process"""
 
-    def __init__(self, param_grid_factory: Optional[ParamGridFactory] = None, seed: Optional[int] = None,
-                 n_repeats: int = 10, n_proc: int = 1, n_sample: int = None, n_consensus: int = 1,
-                 n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100, output_folder: str = ".",
-                 verbose: bool = False):
+    def __init__(self, param_grid_factory: Optional[ParamGridFactory] = None, n_repeats: int = 10, n_proc: int = 1,
+                 n_sample: int = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
+                 seed: Optional[int] = None, output_folder: str = "."):
         self.verbose = verbose
         self.n_sample = n_sample
         self.n_proc = n_proc

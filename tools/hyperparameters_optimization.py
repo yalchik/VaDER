@@ -96,7 +96,6 @@ if __name__ == "__main__":
 
     optimizer = VADERHyperparametersOptimizer(
         param_grid_factory=MyParamGridFactory(),
-        seed=args.input_seed,
         n_repeats=args.n_repeats,
         n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
         n_sample=args.n_sample,
@@ -104,6 +103,7 @@ if __name__ == "__main__":
         n_epoch=args.n_epoch,
         n_splits=args.n_splits,
         n_perm=args.n_perm,
+        seed=args.input_seed,
         output_folder=args.output_folder
     )
 

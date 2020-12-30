@@ -1,6 +1,6 @@
 from numpy import ndarray
 from typing import Dict, Union, Optional
-from .abstract_optimization_job import AbstractOptimizationJob
+from vader.hp_opt.job.abstract_optimization_job import AbstractOptimizationJob
 from vader import VADER
 
 
