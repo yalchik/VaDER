@@ -128,28 +128,3 @@ class FullOptimizationJob(AbstractOptimizationJob):
         vader.pre_fit(n_epoch=10, verbose=False)
         vader.fit(n_epoch=self.n_epoch, verbose=False)
         return vader
-
-
-if __name__ == "__main__":
-    from vader.data_utils import read_adni_data
-
-    input_data_file = "d:/workspaces/vader_data/ADNI/Xnorm.csv"
-    input_data, input_weights = read_adni_data(input_data_file)
-    params_dict = {
-        "k": 4,
-        "n_hidden": [32, 8],
-        "learning_rate": 0.01,
-        "batch_size": 16,
-        "alpha": 1.0
-    }
-    seed = None
-    n_consensus = 1
-    n_epoch = 10
-    n_splits = 2
-    n_perm = 10
-    verbose = True
-    params_tuple = (input_data, input_weights, params_dict, seed,
-                    n_consensus, n_epoch, n_splits, n_perm, verbose)
-    job = FullOptimizationJob(*params_tuple)
-    result = job.run()
-    print(result)
