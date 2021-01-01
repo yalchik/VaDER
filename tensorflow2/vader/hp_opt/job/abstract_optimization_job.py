@@ -76,7 +76,7 @@ class AbstractOptimizationJob(ABC):
         -------
         Pandas Series with evaluation metrics values for a certain set of hyperparameters.
         """
-        self.logger.debug(f"=> optimization_job started id={self.cv_id}")
+        # self.logger.debug(f"=> optimization_job started id={self.cv_id}")
         cv_folds_results_list = []
         data_split = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.seed).split(self.data)
         for train_index, val_index in data_split:
@@ -92,5 +92,5 @@ class AbstractOptimizationJob(ABC):
         cv_mean_results_series = cv_folds_results_df.mean()
         cv_params_series = pd.Series(self.params_dict)
         cv_result_series = cv_params_series.append(cv_mean_results_series)
-        self.logger.debug(f"<= optimization_job finished id={self.cv_id}")
+        # self.logger.debug(f"<= optimization_job finished id={self.cv_id}")
         return cv_result_series
