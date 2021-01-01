@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.9.1" />
-<title>vader API documentation</title>
+<title>vader.hp_opt.job.pre_fit_optimization_job API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,49 +19,127 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Package <code>vader</code></h1>
+<h1 class="title">Module <code>vader.hp_opt.job.pre_fit_optimization_job</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from vader.vader import VADER
+<pre><code class="python">from numpy import ndarray
+from typing import Dict, Union, Optional
+from vader.hp_opt.job.abstract_optimization_job import AbstractOptimizationJob
+from vader import VADER
 
-if __name__ == &#39;__main__&#39;:
-    pass</code></pre>
+
+class PreFitOptimizationJob(AbstractOptimizationJob):
+    &#34;&#34;&#34;
+    Hyperparameter optimization using non-variational AEs
+    It can be used to speed up the selection of non-&#39;k&#39; hyperparameters.
+    &#34;&#34;&#34;
+
+    def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
+                      W_val: Optional[ndarray]) -&gt; Dict[str, Union[int, float]]:
+        vader = self._fit_vader(X_train, W_train)
+        # noinspection PyTypeChecker
+        test_loss_dict = vader.get_loss(X_val)
+        train_reconstruction_loss, train_latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
+        test_reconstruction_loss, test_latent_loss = test_loss_dict[&#34;reconstruction_loss&#34;], test_loss_dict[
+            &#34;latent_loss&#34;]
+
+        return {
+            &#34;train_reconstruction_loss&#34;: train_reconstruction_loss,
+            &#34;train_latent_loss&#34;: train_latent_loss,
+            &#34;test_reconstruction_loss&#34;: test_reconstruction_loss,
+            &#34;test_latent_loss&#34;: test_latent_loss
+        }
+
+    def _fit_vader(self, X_train: ndarray, W_train: Optional[ndarray]) -&gt; VADER:
+        k = 1
+        n_hidden = self.params_dict[&#34;n_hidden&#34;]
+        learning_rate = self.params_dict[&#34;learning_rate&#34;]
+        batch_size = self.params_dict[&#34;batch_size&#34;]
+        alpha = 0
+
+        # noinspection PyTypeChecker
+        vader = VADER(X_train=X_train, W_train=W_train, save_path=None, n_hidden=n_hidden, k=k, seed=self.seed,
+                      learning_rate=learning_rate, recurrent=True, batch_size=batch_size, alpha=alpha)
+
+        vader.pre_fit(n_epoch=self.n_epoch, verbose=False)
+        return vader</code></pre>
 </details>
 </section>
 <section>
-<h2 class="section-title" id="header-submodules">Sub-modules</h2>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt><code class="name"><a title="vader.hp_opt" href="hp_opt/index.html">vader.hp_opt</a></code></dt>
+<dt id="vader.hp_opt.job.pre_fit_optimization_job.PreFitOptimizationJob"><code class="flex name class">
+<span>class <span class="ident">PreFitOptimizationJob</span></span>
+<span>(</span><span>data: numpy.ndarray, weights: numpy.ndarray, params_dict: Dict[str, Union[int, float, List[Union[int, float]]]], seed: int, n_consensus: int, n_epoch: int, n_splits: int, n_perm: int)</span>
+</code></dt>
 <dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="vader.utils" href="utils/index.html">vader.utils</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="vader.vader" href="vader.html">vader.vader</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="vader.vader_sklearn" href="vader_sklearn.html">vader.vader_sklearn</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt><code class="name"><a title="vader.vadermodel" href="vadermodel.html">vader.vadermodel</a></code></dt>
-<dd>
-<div class="desc"></div>
+<div class="desc"><p>Hyperparameter optimization using non-variational AEs
+It can be used to speed up the selection of non-'k' hyperparameters.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class PreFitOptimizationJob(AbstractOptimizationJob):
+    &#34;&#34;&#34;
+    Hyperparameter optimization using non-variational AEs
+    It can be used to speed up the selection of non-&#39;k&#39; hyperparameters.
+    &#34;&#34;&#34;
+
+    def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
+                      W_val: Optional[ndarray]) -&gt; Dict[str, Union[int, float]]:
+        vader = self._fit_vader(X_train, W_train)
+        # noinspection PyTypeChecker
+        test_loss_dict = vader.get_loss(X_val)
+        train_reconstruction_loss, train_latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
+        test_reconstruction_loss, test_latent_loss = test_loss_dict[&#34;reconstruction_loss&#34;], test_loss_dict[
+            &#34;latent_loss&#34;]
+
+        return {
+            &#34;train_reconstruction_loss&#34;: train_reconstruction_loss,
+            &#34;train_latent_loss&#34;: train_latent_loss,
+            &#34;test_reconstruction_loss&#34;: test_reconstruction_loss,
+            &#34;test_latent_loss&#34;: test_latent_loss
+        }
+
+    def _fit_vader(self, X_train: ndarray, W_train: Optional[ndarray]) -&gt; VADER:
+        k = 1
+        n_hidden = self.params_dict[&#34;n_hidden&#34;]
+        learning_rate = self.params_dict[&#34;learning_rate&#34;]
+        batch_size = self.params_dict[&#34;batch_size&#34;]
+        alpha = 0
+
+        # noinspection PyTypeChecker
+        vader = VADER(X_train=X_train, W_train=W_train, save_path=None, n_hidden=n_hidden, k=k, seed=self.seed,
+                      learning_rate=learning_rate, recurrent=True, batch_size=batch_size, alpha=alpha)
+
+        vader.pre_fit(n_epoch=self.n_epoch, verbose=False)
+        return vader</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="vader.hp_opt.job.abstract_optimization_job.AbstractOptimizationJob" href="abstract_optimization_job.html#vader.hp_opt.job.abstract_optimization_job.AbstractOptimizationJob">AbstractOptimizationJob</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="vader.hp_opt.job.abstract_optimization_job.AbstractOptimizationJob" href="abstract_optimization_job.html#vader.hp_opt.job.abstract_optimization_job.AbstractOptimizationJob">AbstractOptimizationJob</a></b></code>:
+<ul class="hlist">
+<li><code><a title="vader.hp_opt.job.abstract_optimization_job.AbstractOptimizationJob.run" href="abstract_optimization_job.html#vader.hp_opt.job.abstract_optimization_job.AbstractOptimizationJob.run">run</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
-</section>
-<section>
-</section>
-<section>
-</section>
-<section>
 </section>
 </article>
 <nav id="sidebar">
@@ -70,13 +148,16 @@ if __name__ == &#39;__main__&#39;:
 <ul></ul>
 </div>
 <ul id="index">
-<li><h3><a href="#header-submodules">Sub-modules</a></h3>
+<li><h3>Super-module</h3>
 <ul>
-<li><code><a title="vader.hp_opt" href="hp_opt/index.html">vader.hp_opt</a></code></li>
-<li><code><a title="vader.utils" href="utils/index.html">vader.utils</a></code></li>
-<li><code><a title="vader.vader" href="vader.html">vader.vader</a></code></li>
-<li><code><a title="vader.vader_sklearn" href="vader_sklearn.html">vader.vader_sklearn</a></code></li>
-<li><code><a title="vader.vadermodel" href="vadermodel.html">vader.vadermodel</a></code></li>
+<li><code><a title="vader.hp_opt.job" href="index.html">vader.hp_opt.job</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="vader.hp_opt.job.pre_fit_optimization_job.PreFitOptimizationJob" href="#vader.hp_opt.job.pre_fit_optimization_job.PreFitOptimizationJob">PreFitOptimizationJob</a></code></h4>
+</li>
 </ul>
 </li>
 </ul>

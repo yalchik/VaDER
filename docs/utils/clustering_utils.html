@@ -1,0 +1,494 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.9.1" />
+<title>vader.utils.clustering_utils API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>vader.utils.clustering_utils</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">import numpy as np
+import pandas as pd
+from numpy import ndarray
+from scipy.special import comb
+from sklearn.metrics.cluster import adjusted_rand_score
+from scipy.cluster.hierarchy import fcluster, linkage
+from scipy.spatial.distance import squareform
+from vader.hp_opt.common import ClusteringType
+from typing import List, Tuple, Union
+
+
+class ClusteringUtils:
+    &#34;&#34;&#34;Contains static methods that help in the clusterization process.&#34;&#34;&#34;
+
+    METRICS_LIST = [&#39;adj_rand_index&#39;, &#39;rand_index&#39;, &#39;prediction_strength&#39;]
+
+    @staticmethod
+    def calc_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+        clusters = y_true
+        classes = y_pred
+        # See: https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
+        tp_plus_fp = comb(np.bincount(clusters), 2).sum()
+        tp_plus_fn = comb(np.bincount(classes), 2).sum()
+        A = np.c_[(clusters, classes)]
+        tp = sum(comb(np.bincount(A[A[:, 0] == i, 1]), 2).sum()
+                 for i in set(clusters))
+        fp = tp_plus_fp - tp
+        fn = tp_plus_fn - tp
+        tn = comb(len(A), 2) - tp - fp - fn
+        return (tp + tn) / (tp + fp + fn + tn)
+
+    @staticmethod
+    def calc_adj_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+        return adjusted_rand_score(y_true, y_pred)
+
+    @staticmethod
+    def calc_prediction_strength(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+        # TODO: investigate strange behaviour (e.g. [1,1,2,2,3], [1,1,2,2,3])
+        return ClusteringUtils.calc_prediction_strength_legacy(y_pred, y_true)
+
+    @staticmethod
+    def calc_prediction_strength_legacy(p: ClusteringType, q: ClusteringType) -&gt; float:
+        def f(y: ndarray) -&gt; ndarray:
+            m = [y for _ in range(len(y))]
+            return m == np.transpose(m)
+
+        n = len(p)
+        mp = f(p)
+        mq = f(q)
+        mpq = mp &amp; mq
+        pr_str_vector = pd.DataFrame(range(n)).groupby(q).apply(
+            lambda ii: (np.sum(mpq[:, ii]) - len(ii)) / len(ii) / (n - 1)
+        )
+        return min(pr_str_vector)
+
+    @staticmethod
+    def calc_permuted_clustering_evaluation_metrics(y_pred: ClusteringType, y_true: ClusteringType, n_perm: int) \
+            -&gt; pd.Series:
+        metrics_dict = {}
+        for i in range(n_perm):
+            sample_y_pred = np.random.permutation(y_pred)
+            adj_rand_index = ClusteringUtils.calc_adj_rand_index(sample_y_pred, y_true)
+            rand_index = ClusteringUtils.calc_rand_index(sample_y_pred, y_true)
+            prediction_strength = ClusteringUtils.calc_prediction_strength(sample_y_pred, y_true)
+            metrics_dict[i] = [adj_rand_index, rand_index, prediction_strength]
+        metrics_df = pd.DataFrame.from_dict(metrics_dict, orient=&#39;index&#39;, columns=ClusteringUtils.METRICS_LIST)
+        return metrics_df.mean()
+
+    @staticmethod
+    def consensus_clustering(clusterings_list: List[ClusteringType], num_of_clusters: int) -&gt; ClusteringType:
+        distMatrix = ClusteringUtils.calc_distance_matrix(clusterings_list)
+        items_linkage = ClusteringUtils.calc_linkage(distMatrix)
+        clustering = list(fcluster(items_linkage, num_of_clusters, criterion=&#39;maxclust&#39;))
+        return clustering
+
+    @staticmethod
+    def calc_distance_matrix(clusterings_list: List[ClusteringType]) -&gt; ndarray:
+        # TODO: optimize the performance
+        m = len(clusterings_list)
+        n = len(clusterings_list[0])
+        M = np.zeros((n, n))
+        for y_pred in clusterings_list:
+            for i, y_item_1 in enumerate(y_pred):
+                for j, y_item_2 in enumerate(y_pred):
+                    if y_item_1 == y_item_2:
+                        M[i, j] += 1
+        distance_matrix = 1 - M / m
+        return distance_matrix
+
+    @staticmethod
+    def calc_linkage(distance_matrix: Union[ndarray, List[List[float]]]) -&gt; ndarray:
+        distance_array = squareform(distance_matrix)  # convert n*n square matrix form into a condensed nC2 array
+        linkage_array = linkage(distance_array, &#39;complete&#39;)
+        return linkage_array
+
+    @staticmethod
+    def std_diff(df: pd.DataFrame) -&gt; pd.Series:
+        &#34;&#34;&#34;Translation of the &#39;colSdDiff&#39; function from the R package &#39;matrixStats&#39;&#34;&#34;&#34;
+        std_diff = df.diff().std() / np.sqrt(2)
+        return std_diff
+
+    @staticmethod
+    def calc_distribution(df: pd.DataFrame) -&gt; Tuple[pd.Series, pd.Series]:
+        mu = df.mean()
+        sigma = ClusteringUtils.std_diff(df) / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
+        return mu, sigma</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="vader.utils.clustering_utils.ClusteringUtils"><code class="flex name class">
+<span>class <span class="ident">ClusteringUtils</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Contains static methods that help in the clusterization process.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class ClusteringUtils:
+    &#34;&#34;&#34;Contains static methods that help in the clusterization process.&#34;&#34;&#34;
+
+    METRICS_LIST = [&#39;adj_rand_index&#39;, &#39;rand_index&#39;, &#39;prediction_strength&#39;]
+
+    @staticmethod
+    def calc_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+        clusters = y_true
+        classes = y_pred
+        # See: https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
+        tp_plus_fp = comb(np.bincount(clusters), 2).sum()
+        tp_plus_fn = comb(np.bincount(classes), 2).sum()
+        A = np.c_[(clusters, classes)]
+        tp = sum(comb(np.bincount(A[A[:, 0] == i, 1]), 2).sum()
+                 for i in set(clusters))
+        fp = tp_plus_fp - tp
+        fn = tp_plus_fn - tp
+        tn = comb(len(A), 2) - tp - fp - fn
+        return (tp + tn) / (tp + fp + fn + tn)
+
+    @staticmethod
+    def calc_adj_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+        return adjusted_rand_score(y_true, y_pred)
+
+    @staticmethod
+    def calc_prediction_strength(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+        # TODO: investigate strange behaviour (e.g. [1,1,2,2,3], [1,1,2,2,3])
+        return ClusteringUtils.calc_prediction_strength_legacy(y_pred, y_true)
+
+    @staticmethod
+    def calc_prediction_strength_legacy(p: ClusteringType, q: ClusteringType) -&gt; float:
+        def f(y: ndarray) -&gt; ndarray:
+            m = [y for _ in range(len(y))]
+            return m == np.transpose(m)
+
+        n = len(p)
+        mp = f(p)
+        mq = f(q)
+        mpq = mp &amp; mq
+        pr_str_vector = pd.DataFrame(range(n)).groupby(q).apply(
+            lambda ii: (np.sum(mpq[:, ii]) - len(ii)) / len(ii) / (n - 1)
+        )
+        return min(pr_str_vector)
+
+    @staticmethod
+    def calc_permuted_clustering_evaluation_metrics(y_pred: ClusteringType, y_true: ClusteringType, n_perm: int) \
+            -&gt; pd.Series:
+        metrics_dict = {}
+        for i in range(n_perm):
+            sample_y_pred = np.random.permutation(y_pred)
+            adj_rand_index = ClusteringUtils.calc_adj_rand_index(sample_y_pred, y_true)
+            rand_index = ClusteringUtils.calc_rand_index(sample_y_pred, y_true)
+            prediction_strength = ClusteringUtils.calc_prediction_strength(sample_y_pred, y_true)
+            metrics_dict[i] = [adj_rand_index, rand_index, prediction_strength]
+        metrics_df = pd.DataFrame.from_dict(metrics_dict, orient=&#39;index&#39;, columns=ClusteringUtils.METRICS_LIST)
+        return metrics_df.mean()
+
+    @staticmethod
+    def consensus_clustering(clusterings_list: List[ClusteringType], num_of_clusters: int) -&gt; ClusteringType:
+        distMatrix = ClusteringUtils.calc_distance_matrix(clusterings_list)
+        items_linkage = ClusteringUtils.calc_linkage(distMatrix)
+        clustering = list(fcluster(items_linkage, num_of_clusters, criterion=&#39;maxclust&#39;))
+        return clustering
+
+    @staticmethod
+    def calc_distance_matrix(clusterings_list: List[ClusteringType]) -&gt; ndarray:
+        # TODO: optimize the performance
+        m = len(clusterings_list)
+        n = len(clusterings_list[0])
+        M = np.zeros((n, n))
+        for y_pred in clusterings_list:
+            for i, y_item_1 in enumerate(y_pred):
+                for j, y_item_2 in enumerate(y_pred):
+                    if y_item_1 == y_item_2:
+                        M[i, j] += 1
+        distance_matrix = 1 - M / m
+        return distance_matrix
+
+    @staticmethod
+    def calc_linkage(distance_matrix: Union[ndarray, List[List[float]]]) -&gt; ndarray:
+        distance_array = squareform(distance_matrix)  # convert n*n square matrix form into a condensed nC2 array
+        linkage_array = linkage(distance_array, &#39;complete&#39;)
+        return linkage_array
+
+    @staticmethod
+    def std_diff(df: pd.DataFrame) -&gt; pd.Series:
+        &#34;&#34;&#34;Translation of the &#39;colSdDiff&#39; function from the R package &#39;matrixStats&#39;&#34;&#34;&#34;
+        std_diff = df.diff().std() / np.sqrt(2)
+        return std_diff
+
+    @staticmethod
+    def calc_distribution(df: pd.DataFrame) -&gt; Tuple[pd.Series, pd.Series]:
+        mu = df.mean()
+        sigma = ClusteringUtils.std_diff(df) / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
+        return mu, sigma</code></pre>
+</details>
+<h3>Class variables</h3>
+<dl>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.METRICS_LIST"><code class="name">var <span class="ident">METRICS_LIST</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_adj_rand_index"><code class="name flex">
+<span>def <span class="ident">calc_adj_rand_index</span></span>(<span>y_pred: Union[numpy.ndarray, List[int]], y_true: Union[numpy.ndarray, List[int]]) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_adj_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+    return adjusted_rand_score(y_true, y_pred)</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_distance_matrix"><code class="name flex">
+<span>def <span class="ident">calc_distance_matrix</span></span>(<span>clusterings_list: List[Union[numpy.ndarray, List[int]]]) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_distance_matrix(clusterings_list: List[ClusteringType]) -&gt; ndarray:
+    # TODO: optimize the performance
+    m = len(clusterings_list)
+    n = len(clusterings_list[0])
+    M = np.zeros((n, n))
+    for y_pred in clusterings_list:
+        for i, y_item_1 in enumerate(y_pred):
+            for j, y_item_2 in enumerate(y_pred):
+                if y_item_1 == y_item_2:
+                    M[i, j] += 1
+    distance_matrix = 1 - M / m
+    return distance_matrix</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_distribution"><code class="name flex">
+<span>def <span class="ident">calc_distribution</span></span>(<span>df: pandas.core.frame.DataFrame) ‑> Tuple[pandas.core.series.Series, pandas.core.series.Series]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_distribution(df: pd.DataFrame) -&gt; Tuple[pd.Series, pd.Series]:
+    mu = df.mean()
+    sigma = ClusteringUtils.std_diff(df) / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
+    return mu, sigma</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_linkage"><code class="name flex">
+<span>def <span class="ident">calc_linkage</span></span>(<span>distance_matrix: Union[numpy.ndarray, List[List[float]]]) ‑> numpy.ndarray</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_linkage(distance_matrix: Union[ndarray, List[List[float]]]) -&gt; ndarray:
+    distance_array = squareform(distance_matrix)  # convert n*n square matrix form into a condensed nC2 array
+    linkage_array = linkage(distance_array, &#39;complete&#39;)
+    return linkage_array</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_permuted_clustering_evaluation_metrics"><code class="name flex">
+<span>def <span class="ident">calc_permuted_clustering_evaluation_metrics</span></span>(<span>y_pred: Union[numpy.ndarray, List[int]], y_true: Union[numpy.ndarray, List[int]], n_perm: int) ‑> pandas.core.series.Series</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_permuted_clustering_evaluation_metrics(y_pred: ClusteringType, y_true: ClusteringType, n_perm: int) \
+        -&gt; pd.Series:
+    metrics_dict = {}
+    for i in range(n_perm):
+        sample_y_pred = np.random.permutation(y_pred)
+        adj_rand_index = ClusteringUtils.calc_adj_rand_index(sample_y_pred, y_true)
+        rand_index = ClusteringUtils.calc_rand_index(sample_y_pred, y_true)
+        prediction_strength = ClusteringUtils.calc_prediction_strength(sample_y_pred, y_true)
+        metrics_dict[i] = [adj_rand_index, rand_index, prediction_strength]
+    metrics_df = pd.DataFrame.from_dict(metrics_dict, orient=&#39;index&#39;, columns=ClusteringUtils.METRICS_LIST)
+    return metrics_df.mean()</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_prediction_strength"><code class="name flex">
+<span>def <span class="ident">calc_prediction_strength</span></span>(<span>y_pred: Union[numpy.ndarray, List[int]], y_true: Union[numpy.ndarray, List[int]]) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_prediction_strength(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+    # TODO: investigate strange behaviour (e.g. [1,1,2,2,3], [1,1,2,2,3])
+    return ClusteringUtils.calc_prediction_strength_legacy(y_pred, y_true)</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_prediction_strength_legacy"><code class="name flex">
+<span>def <span class="ident">calc_prediction_strength_legacy</span></span>(<span>p: Union[numpy.ndarray, List[int]], q: Union[numpy.ndarray, List[int]]) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_prediction_strength_legacy(p: ClusteringType, q: ClusteringType) -&gt; float:
+    def f(y: ndarray) -&gt; ndarray:
+        m = [y for _ in range(len(y))]
+        return m == np.transpose(m)
+
+    n = len(p)
+    mp = f(p)
+    mq = f(q)
+    mpq = mp &amp; mq
+    pr_str_vector = pd.DataFrame(range(n)).groupby(q).apply(
+        lambda ii: (np.sum(mpq[:, ii]) - len(ii)) / len(ii) / (n - 1)
+    )
+    return min(pr_str_vector)</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.calc_rand_index"><code class="name flex">
+<span>def <span class="ident">calc_rand_index</span></span>(<span>y_pred: Union[numpy.ndarray, List[int]], y_true: Union[numpy.ndarray, List[int]]) ‑> float</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def calc_rand_index(y_pred: ClusteringType, y_true: ClusteringType) -&gt; float:
+    clusters = y_true
+    classes = y_pred
+    # See: https://stackoverflow.com/questions/49586742/rand-index-function-clustering-performance-evaluation
+    tp_plus_fp = comb(np.bincount(clusters), 2).sum()
+    tp_plus_fn = comb(np.bincount(classes), 2).sum()
+    A = np.c_[(clusters, classes)]
+    tp = sum(comb(np.bincount(A[A[:, 0] == i, 1]), 2).sum()
+             for i in set(clusters))
+    fp = tp_plus_fp - tp
+    fn = tp_plus_fn - tp
+    tn = comb(len(A), 2) - tp - fp - fn
+    return (tp + tn) / (tp + fp + fn + tn)</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.consensus_clustering"><code class="name flex">
+<span>def <span class="ident">consensus_clustering</span></span>(<span>clusterings_list: List[Union[numpy.ndarray, List[int]]], num_of_clusters: int) ‑> Union[numpy.ndarray, List[int]]</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def consensus_clustering(clusterings_list: List[ClusteringType], num_of_clusters: int) -&gt; ClusteringType:
+    distMatrix = ClusteringUtils.calc_distance_matrix(clusterings_list)
+    items_linkage = ClusteringUtils.calc_linkage(distMatrix)
+    clustering = list(fcluster(items_linkage, num_of_clusters, criterion=&#39;maxclust&#39;))
+    return clustering</code></pre>
+</details>
+</dd>
+<dt id="vader.utils.clustering_utils.ClusteringUtils.std_diff"><code class="name flex">
+<span>def <span class="ident">std_diff</span></span>(<span>df: pandas.core.frame.DataFrame) ‑> pandas.core.series.Series</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Translation of the 'colSdDiff' function from the R package 'matrixStats'</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def std_diff(df: pd.DataFrame) -&gt; pd.Series:
+    &#34;&#34;&#34;Translation of the &#39;colSdDiff&#39; function from the R package &#39;matrixStats&#39;&#34;&#34;&#34;
+    std_diff = df.diff().std() / np.sqrt(2)
+    return std_diff</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="vader.utils" href="index.html">vader.utils</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="vader.utils.clustering_utils.ClusteringUtils" href="#vader.utils.clustering_utils.ClusteringUtils">ClusteringUtils</a></code></h4>
+<ul class="">
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.METRICS_LIST" href="#vader.utils.clustering_utils.ClusteringUtils.METRICS_LIST">METRICS_LIST</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_adj_rand_index" href="#vader.utils.clustering_utils.ClusteringUtils.calc_adj_rand_index">calc_adj_rand_index</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_distance_matrix" href="#vader.utils.clustering_utils.ClusteringUtils.calc_distance_matrix">calc_distance_matrix</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_distribution" href="#vader.utils.clustering_utils.ClusteringUtils.calc_distribution">calc_distribution</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_linkage" href="#vader.utils.clustering_utils.ClusteringUtils.calc_linkage">calc_linkage</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_permuted_clustering_evaluation_metrics" href="#vader.utils.clustering_utils.ClusteringUtils.calc_permuted_clustering_evaluation_metrics">calc_permuted_clustering_evaluation_metrics</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_prediction_strength" href="#vader.utils.clustering_utils.ClusteringUtils.calc_prediction_strength">calc_prediction_strength</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_prediction_strength_legacy" href="#vader.utils.clustering_utils.ClusteringUtils.calc_prediction_strength_legacy">calc_prediction_strength_legacy</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.calc_rand_index" href="#vader.utils.clustering_utils.ClusteringUtils.calc_rand_index">calc_rand_index</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.consensus_clustering" href="#vader.utils.clustering_utils.ClusteringUtils.consensus_clustering">consensus_clustering</a></code></li>
+<li><code><a title="vader.utils.clustering_utils.ClusteringUtils.std_diff" href="#vader.utils.clustering_utils.ClusteringUtils.std_diff">std_diff</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc"><cite>pdoc</cite> 0.9.1</a>.</p>
+</footer>
+</body>
+</html>
