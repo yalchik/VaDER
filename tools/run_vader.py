@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import numpy as np
+from typing import Tuple
 from collections import Counter
 from vader import VADER
 from vader.utils.data_utils import read_adni_data, read_nacc_data
