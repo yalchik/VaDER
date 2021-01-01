@@ -51,17 +51,16 @@ optional arguments:
   --input_seed INPUT_SEED
                         used both as KFold random_state and VaDER seed
   --n_repeats N_REPEATS
-                        number of repeats, should be >= 1, default 1
-  --n_proc N_PROC       number of processor units that can be used,by default is set to the total number of CPUs on the machine
-  --n_sample N_SAMPLE   number of hyperparameters set per CV
+                        number of repeats, default 10
+  --n_proc N_PROC       number of processor units that can be used, default 6
+  --n_sample N_SAMPLE   number of hyperparameters set per CV, default - full grid
   --n_consensus N_CONSENSUS
-                        number of repeats for consensus clustering
-  --n_epoch N_EPOCH     number of epochs for VaDER training
-  --n_splits N_SPLITS   number of splits in KFold per optimization job
-  --n_perm N_PERM       number of permutations for prediction strength
+                        number of repeats for consensus clustering, default 1
+  --n_epoch N_EPOCH     number of epochs for VaDER training, default 10
+  --n_splits N_SPLITS   number of splits in KFold per optimization job, default 2
+  --n_perm N_PERM       number of permutations for prediction strength, default 100
   --output_folder OUTPUT_FOLDER
                         a directory where report will be written
-
 ```
 The script result will be represented as a PDF report written in a given```output_folder```.
 
@@ -95,7 +94,7 @@ python hyperparameters_optimization.py --input_data_file=../vader_data/ADNI/Xnor
 
 | Name          | Default                     | Typical range   | Description   |
 | ------------- | --------------------------- | --------------- | ------------- |
-| n_proc        | 1 (no multi-processing)     | 1-8             | Defines how many processor units can be used to run optimization jobs. If the value is too big - maximum number of CPUs will be used. Since each jobs splits into some sub-processes too, a good approach will be to set n_proc to a maximum number of CPUs divided by 4. |
+| n_proc        | 6                           | 1-8             | Defines how many processor units can be used to run optimization jobs. If the value is too big - maximum number of CPUs will be used. Since each jobs splits into some sub-processes too, a good approach will be to set n_proc to a maximum number of CPUs divided by 4. |
 | n_repeats     | 10                          | 10-20           | Defines how many times we perform the optimization for the same set of hyperparameters. The higher this parameter - the better is optimization, but the worse is performance. |
 | n_sample      | None (full grid search)     | 30-150          | Defines how many sets of hyperparameters (excluding 'k'-s) we choose to evaluate from the full grid. For example, the full parameters grid described in the paper contains 896 sets of hyperparameters. If we set n_sample >= 896 or None, it will perform full grid search. If we set n_sample=100, it will randomly choose 100 sets of hyperparameters from the full grid. Note that if we test for 10 different k-s, the number of jobs will be multiplied. For example, if n_sample=100 and k is in range(2, 11), the total number of jobs will be 900. The higher this parameter - the better is optimization, but the worse is performance.  |
 | n_consensus   | 1 (no consensus clustering) | 1-10            | Defines how many times we train vader for each job for each data split. If n_consensus > 1, then it runs the "consensus clustering" algorithm to determine the final clustering. The higher this parameter - the better is optimization, but the worse is performance.  |
@@ -103,7 +102,7 @@ python hyperparameters_optimization.py --input_data_file=../vader_data/ADNI/Xnor
 | n_epoch       | 10                          | 10-50           | Defines how many epochs we train during the vader's "fit" step. The higher this parameter - the better is optimization, but the worse is performance.  |
 | n_perm        | 100                         | 100-1000        | Defines how many times we permute each clustering during the calculation of the "prediction_strength_null". The higher this parameter - the better is optimization, but the worse is performance.  |
 | seed          | None                        | Any integer     | Initializes the random number generator. It can be used to achieve reproducible results. If None - the random number generator will use its in-built initialization logic (e.g. using the current system time)  |
-| output_folder | current folder              | Any folder path | Defines a folder where all outputs will be written. Outputs include:<ul><li>final pdf report;</li><li>diffs csv file that was used to generate the pdf report;</li><li>all jobs results in csv format;</li><li>"csv_repeats" folder with intermediate csv chunks;</li><li>"failed_jobs" folder with stack-traces for all failed jobs;</li><li>logging file.</li></ul>  |
+| output_folder | Current folder              | Any folder path | Defines a folder where all outputs will be written. Outputs include:<ul><li>final pdf report;</li><li>diffs csv file that was used to generate the pdf report;</li><li>all jobs results in csv format;</li><li>"csv_repeats" folder with intermediate csv chunks;</li><li>"failed_jobs" folder with stack-traces for all failed jobs;</li><li>logging file.</li></ul>  |
 
 #### VaDER CLI
 Similar to the hyperparameters optimization, there must be a function that transforms input data into a tensor; How to integrate it - see the explanation in the part "Hyperparameters optimization (preparation)"

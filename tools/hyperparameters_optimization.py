@@ -5,7 +5,8 @@ import numpy as np
 import multiprocessing as mp
 from typing import Tuple
 from vader.utils.data_utils import read_adni_data, read_nacc_data
-from vader.hp_opt import VADERHyperparametersOptimizer, ParamGridFactory
+from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
+from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
 
 
@@ -58,15 +59,14 @@ if __name__ == "__main__":
     parser.add_argument("--input_data_type", type=str, choices=["ADNI", "NACC", "PPMI", "custom"], required=True)
     parser.add_argument("--input_weights_file", type=str, help=".csv file with flags for missing values")
     parser.add_argument("--input_seed", type=int, help="used both as KFold random_state and VaDER seed")
-    parser.add_argument("--n_repeats", type=int, default=1, help="number of repeats, should be >= 1, default 1")
-    parser.add_argument("--n_proc", type=int, help="number of processor units that can be used,"
-                                                   "by default is set to the total number of CPUs on the machine")
-    parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV")
-    parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering")
-    parser.add_argument("--n_epoch", type=int, default=10, help="number of epochs for VaDER training")
-    parser.add_argument("--n_splits", type=int, default=2, help="number of splits in KFold per optimization job")
-    parser.add_argument("--n_perm", type=int, default=10, help="number of permutations for prediction strength")
-    parser.add_argument("--output_folder", type=str, required=True, help="a directory where report will be written")
+    parser.add_argument("--n_repeats", type=int, default=10, help="number of repeats, default 10")
+    parser.add_argument("--n_proc", type=int, default=6, help="number of processor units that can be used, default 6")
+    parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV, default - full grid")
+    parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering, default 1")
+    parser.add_argument("--n_epoch", type=int, default=10, help="number of epochs for VaDER training, default 10")
+    parser.add_argument("--n_splits", type=int, default=2, help="number of splits in KFold per optimization job, default 2")
+    parser.add_argument("--n_perm", type=int, default=100, help="number of permutations for prediction strength, default 100")
+    parser.add_argument("--output_folder", type=str, default=".", required=True, help="a directory where report will be written")
     args = parser.parse_args()
 
     if not os.path.exists(args.input_data_file):
