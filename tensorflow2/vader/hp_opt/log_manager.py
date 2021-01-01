@@ -1,13 +1,13 @@
 import sys
 import logging
 from logging import Formatter
-from typing import Final, Dict, Optional
+from typing import Dict, Optional
 
 
 class LogManager:
     """Configures and holds loggers and provides the interface to get a certain logger by name"""
 
-    FORMATTER: Final[Formatter] = Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
+    FORMATTER: Formatter = Formatter("%(asctime)s — %(name)s — %(levelname)s — %(message)s")
 
     def __init__(self):
         self.loggers_dict: Dict[str, logging.Logger] = {}
