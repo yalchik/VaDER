@@ -8,6 +8,24 @@ from vader.utils.data_utils import read_adni_data, read_nacc_data
 from vader.utils.clustering_utils import ClusteringUtils
 
 
+def read_custom_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
+    """
+    EDIT THIS FUNCTION TO SUPPORT THE "custom" DATA TYPE.
+
+    Reads a given csv file and produces 2 tensors (X, W), where each tensor has tis structure:
+      1st dimension is samples,
+      2nd dimension is time points,
+      3rd dimension is feature vectors.
+    X represents input data
+    W contains values 0 or 1 for each point of X.
+      "0" means the point should be ignored (e.g. because the data is missing)
+      "1" means the point should be used for training
+
+    Implementation examples: vader.utils.read_adni_data or vader.utils.read_nacc_data
+    """
+    raise NotImplementedError
+
+
 if __name__ == "__main__":
     """
     The script runs VaDER model with a given set of hyperparameters on given data.

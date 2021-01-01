@@ -9,7 +9,7 @@ from vader.hp_opt import VADERHyperparametersOptimizer, ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
 
 
-class MyParamGridFactory(ParamGridFactory):
+class PlainParamGridFactory(ParamGridFactory):
 
     def get_full_param_dict(self) -> ParamsDictType:
         """
@@ -95,7 +95,7 @@ if __name__ == "__main__":
         exit(4)
 
     optimizer = VADERHyperparametersOptimizer(
-        param_grid_factory=MyParamGridFactory(),
+        param_grid_factory=PlainParamGridFactory(),
         n_repeats=args.n_repeats,
         n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
         n_sample=args.n_sample,
