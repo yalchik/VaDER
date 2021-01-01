@@ -7,7 +7,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 from matplotlib.lines import Line2D
-from vader.hp_opt.clustering_utils import ClusteringUtils
+from vader.utils.clustering_utils import ClusteringUtils
 from typing import List, Type, TypeVar, Tuple
 
 CVResultsAggregatorType = TypeVar('CVResultsAggregatorType', bound='CVResultsAggregator')

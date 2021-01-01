@@ -9,6 +9,8 @@ from sklearn.model_selection import KFold
 
 
 class AbstractOptimizationJob(ABC):
+    """Holds cross-validation logic."""
+
     def __init__(self, data: ndarray, weights: ndarray, params_dict: common.ParamsDictType, seed: int,
                  n_consensus: int, n_epoch: int, n_splits: int, n_perm: int):
         self.data = data
@@ -25,13 +27,53 @@ class AbstractOptimizationJob(ABC):
     @abstractmethod
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
                       W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:
+        """
+        Processes a single data fold when input data has been already split into a train and a validation subsets.
+
+        Parameters
+        ----------
+        X_train : tensor
+        X_val : tensor
+        W_train : tensor
+        W_val : tensor
+
+        Returns
+        -------
+        Dictionary mapping performance metrics names to their values.
+        """
         pass
 
     @abstractmethod
     def _fit_vader(self, X_train: ndarray, W_train: Optional[ndarray]) -> VADER:
+        """
+        Fits VaDER model with given data and weights tensors.
+
+        Parameters
+        ----------
+        X_train : tensor
+            1st dimension is samples,
+            2nd dimension is time points,
+            3rd dimension is feature vectors.
+        W_train : tensor
+            Has the same structure as input_data tensor, but defines if the corresponding value in X tensor is missing.
+            If None, VaDER will use its own logic to calculate weights from the X_train data.
+
+        Returns
+        -------
+        VaDER object with calculated weights, that can be used to cluster data.
+        """
         pass
 
     def run(self) -> pd.Series:
+        """
+        Main entry point of the job. Handles cross-validation process.
+        Splits data into training and validation data subsets, calls an abstract method to measure the performance
+          for each fold and aggregates the results in the end.
+
+        Returns
+        -------
+        Pandas Series with evaluation metrics values for a certain set of hyperparameters.
+        """
         self.logger.debug(f"=> optimization_job started id={self.cv_id}")
         cv_folds_results_list = []
         data_split = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.seed).split(self.data)

@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 from typing import Tuple
-from vader.data_utils import read_adni_data, read_nacc_data
+from vader.utils.data_utils import read_adni_data, read_nacc_data
 from vader.hp_opt import VADERHyperparametersOptimizer, ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
 

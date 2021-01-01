@@ -4,7 +4,7 @@ import shutil
 import logging
 import multiprocessing as mp
 from typing import Final
-from vader.data_utils import generate_x_w_y
+from vader.utils.data_utils import generate_x_w_y
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 

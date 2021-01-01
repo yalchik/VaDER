@@ -5,6 +5,10 @@ from vader import VADER
 
 
 class PreFitOptimizationJob(AbstractOptimizationJob):
+    """
+    Hyperparameter optimization using non-variational AEs
+    It can be used to speed up the selection of non-'k' hyperparameters.
+    """
 
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
                       W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:

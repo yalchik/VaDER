@@ -1,6 +1,4 @@
-import pandas as pd
-from pandas.testing import assert_series_equal
-from vader.data_utils import generate_x_w_y
+from vader.utils.data_utils import generate_x_w_y
 from vader.hp_opt.job.full_optimization_job import FullOptimizationJob
 
 

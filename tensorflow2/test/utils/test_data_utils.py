@@ -1,4 +1,4 @@
-from vader.data_utils import generate_x_y_for_nonrecur, generate_x_w_y
+from vader.utils.data_utils import generate_x_y_for_nonrecur, generate_x_w_y
 
 
 class TestDataUtils:

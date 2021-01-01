@@ -2,7 +2,7 @@ import numpy as np
 import pandas as pd
 from pytest import approx
 from pandas.testing import assert_series_equal, assert_frame_equal
-from vader.hp_opt.clustering_utils import ClusteringUtils
+from vader.utils.clustering_utils import ClusteringUtils
 
 
 class TestClusteringUtils:

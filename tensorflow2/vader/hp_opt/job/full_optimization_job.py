@@ -4,10 +4,29 @@ from collections import Counter
 from typing import Dict, Union, Optional
 from vader import VADER
 from vader.hp_opt.job.abstract_optimization_job import AbstractOptimizationJob
-from vader.hp_opt.clustering_utils import ClusteringUtils
+from vader.utils.clustering_utils import ClusteringUtils
 
 
 class FullOptimizationJob(AbstractOptimizationJob):
+    """Calculates the following metrics for a given set of hyperparameters:
+        * train_reconstruction_loss - reconstruction loss on the training data set
+        * train_latent_loss - latent loss on the training data set
+        * train_total_loss = train_reconstruction_loss + alpha * train_latent_loss
+        * test_reconstruction_loss - reconstruction loss on the validation data set
+        * test_latent_loss - latent loss on the validation data set
+        * test_total_loss = test_reconstruction_loss + alpha * test_latent_loss
+        * effective_k - how many clusters we get on the training data set
+        * rand_index - "Rand index" between clusterings of validation data sets produced by training
+            on a train data set and a validation data set;
+        * rand_index_null - "Rand index" between clustering of validation data set and a random clustering;
+        * adj_rand_index - "Adjusted Rand index" between clusterings of validation data sets produced by training
+            on a train data set and a validation data set;
+        * adj_rand_index_null - "Adjusted Rand index" between clustering of validation data set and a random clustering;
+        * prediction_strength - "Prediction strength" between clusterings of validation data sets produced by training
+            on a train data set and a validation data set;
+        * prediction_strength_null - "Prediction strength" between clustering of validation data set
+            and a random clustering.
+    """
 
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
                       W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:

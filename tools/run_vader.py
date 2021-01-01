@@ -1,12 +1,11 @@
 import os
 import sys
 import argparse
-import vader.data_utils
 import numpy as np
 from collections import Counter
 from vader import VADER
-from vader.data_utils import read_adni_data, read_nacc_data
-from vader.hp_opt.clustering_utils import ClusteringUtils
+from vader.utils.data_utils import read_adni_data, read_nacc_data
+from vader.utils.clustering_utils import ClusteringUtils
 
 
 if __name__ == "__main__":

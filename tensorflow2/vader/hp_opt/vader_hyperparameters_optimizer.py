@@ -16,6 +16,73 @@ class VADERHyperparametersOptimizer:
     def __init__(self, param_grid_factory: Optional[ParamGridFactory] = None, n_repeats: int = 10, n_proc: int = 1,
                  n_sample: int = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
                  seed: Optional[int] = None, output_folder: str = "."):
+        """
+        Configure output folders, output file names, param grid and logging.
+
+        Parameters
+        ----------
+        param_grid_factory : ParamGridFactory or None
+            Object that produces a parameters dictionary and a parameters grid
+        n_repeats : int
+            Defines how many times we perform the optimization for the same set of hyperparameters.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 10-20.
+            Default is 10.
+        n_proc : int
+            Defines how many processor units can be used to run optimization jobs.
+            If the value is too big - maximum number of CPUs will be used.
+            Since each jobs splits into some sub-processes too,
+              a good approach will be to set n_proc to a maximum number of CPUs divided by 4.
+            Default is 1 (no multi-processing).
+        n_sample : int or None
+            Defines how many sets of hyperparameters (excluding 'k'-s) we choose to evaluate from the full grid.
+            For example, the full parameters grid described in the paper contains 896 sets of hyperparameters.
+            If we set n_sample >= 896 or None, it will perform full grid search.
+            If we set n_sample=100, it will randomly choose 100 sets of hyperparameters from the full grid.
+            Note that if we test for 10 different k-s, the number of jobs will be multiplied. For example,
+              if n_sample=100 and k is in range(2, 11), the total number of jobs will be 900.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 30-150.
+            Default is None (full grid search).
+        n_consensus : int
+            Defines how many times we train vader for each job for each data split.
+            If n_consensus > 1, then it runs the "consensus clustering" algorithm
+              to determine the final clustering.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 1-10.
+            Default is 1 (no consensus clustering).
+        n_epoch : int
+            Defines how many epochs we train during the vader's "fit" step.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 10-50.
+            Default is 10.
+        n_splits : int
+            Defines into how many chunks we split the data for the cross-validation step.
+            Increase this parameter for bigger data sets.
+            Optimal values: 2-10.
+            Default is 2.
+        n_perm : int
+            Defines how many times we permute each clustering during the calculation of the "prediction_strength_null".
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 100-1000.
+            Default is 100.
+        seed : int or None
+            Initializes the random number generator.
+            It can be used to achieve reproducible results.
+            If None - the random number generator will use its in-built initialization logic
+                (e.g. using the current system time)
+            Default is None.
+        output_folder : str
+            Defines a folder where all outputs will be written.
+            Outputs include:
+              * final pdf report;
+              * diffs csv file that was used to generate the pdf report;
+              * all jobs results in csv format;
+              * "csv_repeats" folder with intermediate csv chunks;
+              * "failed_jobs" folder with stack-traces for all failed jobs;
+              * logging file.
+            Default: the current folder.
+        """
         self.verbose = verbose
         self.n_sample = n_sample
         self.n_proc = n_proc
@@ -54,7 +121,23 @@ class VADERHyperparametersOptimizer:
         self.logger.info(f"{__name__} is initialized with run_id={self.run_id}")
 
     def run(self, input_data: np.ndarray, input_weights: np.ndarray) -> None:
-        """Main entry function that does all the job"""
+        """
+        Main entry function that does all the job.
+        Produces output files in the folder configured during the object initialization.
+
+        Parameters
+        ----------
+        input_data : tensor
+            1st dimension is samples,
+            2nd dimension is time points,
+            3rd dimension is feature vectors.
+        input_weights : tensor
+            Has the same structure as input_data tensor, but defines if the corresponding value in X tensor is missing.
+
+        Returns
+        -------
+        None
+        """
         self.logger.info(f"Optimization has started. Data shape: {input_data.shape}")
 
         jobs_params_list = self.__construct_jobs_params_list(input_data, input_weights)
@@ -76,6 +159,21 @@ class VADERHyperparametersOptimizer:
             self.logger.warning(f"There are {number_of_failed_jobs} failed jobs. See: {self.failed_jobs_dir}")
 
     def run_parallel_jobs(self, jobs_params_list: List[tuple]) -> pd.DataFrame:
+        """
+        Runs full optimization jobs in parallel: one job for each element of the input list.
+
+        Parameters
+        ----------
+        jobs_params_list : list of tuples
+            Each element of the list contains input data for a job.
+            If the list contains N tuples, there will be N jobs.
+
+        Returns
+        -------
+        DataFrame where:
+          each row is a single optimization job result;
+          each column is either a hyperparameter or a performance metric.
+        """
         with mp.Pool(self.n_proc) as pool:
             cv_results_list = pool.map(self.run_cv_full_job, jobs_params_list)
 
@@ -83,6 +181,18 @@ class VADERHyperparametersOptimizer:
         return cv_results_df
 
     def run_cv_full_job(self, params_tuple: tuple) -> pd.Series:
+        """
+        Runs a single job with a given parameters set.
+
+        Parameters
+        ----------
+        params_tuple : tuple of any objects
+            Everything that has to be passed to the optimization job's __init__ method.
+
+        Returns
+        -------
+        A single optimization job result, which contains a certain set of hyperparameters and performance metrics.
+        """
         job = FullOptimizationJob(*params_tuple)
         try:
             self.logger.info(f"Job has started with id={job.cv_id} and params_tuple={params_tuple}")
