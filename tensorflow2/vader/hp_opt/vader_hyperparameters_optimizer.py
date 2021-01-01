@@ -83,7 +83,6 @@ class VADERHyperparametersOptimizer:
               * logging file.
             Default: the current folder.
         """
-        self.verbose = verbose
         self.n_sample = n_sample
         self.n_proc = n_proc
         self.n_repeats = n_repeats
