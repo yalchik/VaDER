@@ -23,6 +23,8 @@ class AbstractOptimizationJob(ABC):
         self.n_perm = n_perm
         self.cv_id = uuid.uuid4()
         self.logger = common.log_manager.get_logger(__name__)
+        self.logger.info(f"Job is initialized with id={job.cv_id}, seed={seed}, n_consensus={n_consensus},"
+                         f" n_epoch={n_epoch}, n_splits={n_splits}, n_perm={n_perm}, params_dict={params_dict}")
 
     @abstractmethod
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],

@@ -194,9 +194,9 @@ class VADERHyperparametersOptimizer:
         """
         job = FullOptimizationJob(*params_tuple)
         try:
-            self.logger.info(f"Job has started with id={job.cv_id} and params_tuple={params_tuple}")
+            self.logger.info(f"Job has started with id={job.cv_id}")
             result = job.run()
-            self.logger.info(f"Job has finished with id={job.cv_id} and params_tuple={params_tuple}")
+            self.logger.info(f"Job has finished with id={job.cv_id}")
         except Exception as err:
             error_message = f"Job failed: {job.cv_id} with err={err}, Traceback: {traceback.format_exc()}"
             log_file = os.path.join(self.failed_jobs_dir, f"{job.cv_id}.log")
