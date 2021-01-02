@@ -39,7 +39,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
          train_reconstruction_loss,
          train_latent_loss,
          test_reconstruction_loss,
-         test_latent_loss) = clustering_func(X_train, X_val, W_train)
+         test_latent_loss) = clustering_func(X_train, X_val, W_train, W_val)
 
         # calculate total loss
         alpha = self.params_dict["alpha"]
@@ -49,7 +49,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
         # calculate y_true
         vader = self._fit_vader(X_val, W_val)
         # noinspection PyTypeChecker
-        y_true = vader.cluster(X_val)
+        y_true = vader.cluster(X_val, W_val)
 
         # evaluate clustering
         adj_rand_index = ClusteringUtils.calc_adj_rand_index(y_pred, y_true)
@@ -74,7 +74,8 @@ class FullOptimizationJob(AbstractOptimizationJob):
             "prediction_strength_null": permuted_clustering_evaluation_metrics["prediction_strength"],
         }
 
-    def _consensus_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray]) -> tuple:
+    def _consensus_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
+                              W_val: Optional[ndarray]) -> tuple:
         y_pred_repeats = []
         effective_k_repeats = []
         train_reconstruction_loss_repeats = []
@@ -90,7 +91,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
                 train_latent_loss,
                 test_reconstruction_loss,
                 test_latent_loss
-            ) = self._single_clustering(X_train, X_val, W_train)
+            ) = self._single_clustering(X_train, X_val, W_train, W_val)
             y_pred_repeats.append(y_pred)
             effective_k_repeats.append(effective_k)
             train_reconstruction_loss_repeats.append(train_reconstruction_loss)
@@ -112,7 +113,8 @@ class FullOptimizationJob(AbstractOptimizationJob):
             test_latent_loss
         )
 
-    def _single_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray]) -> tuple:
+    def _single_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
+                           W_val: Optional[ndarray]) -> tuple:
         # calculate y_pred
         vader = self._fit_vader(X_train, W_train)
         # noinspection PyTypeChecker
@@ -121,9 +123,9 @@ class FullOptimizationJob(AbstractOptimizationJob):
         test_reconstruction_loss, test_latent_loss = test_loss_dict["reconstruction_loss"], test_loss_dict[
             "latent_loss"]
         # noinspection PyTypeChecker
-        effective_k = len(Counter(vader.cluster(X_train)))
+        effective_k = len(Counter(vader.cluster(X_train, W_train)))
         # noinspection PyTypeChecker
-        y_pred = vader.cluster(X_val)
+        y_pred = vader.cluster(X_val, W_val)
         return (
             y_pred,
             effective_k,

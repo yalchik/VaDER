@@ -99,7 +99,7 @@ if __name__ == "__main__":
                               seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
                 vader.pre_fit(n_epoch=10, verbose=False)
                 vader.fit(n_epoch=args.n_epoch, verbose=False)
-                clustering = vader.cluster(input_data)
+                clustering = vader.cluster(input_data, input_weights)
                 effective_k = len(Counter(clustering))
                 y_pred_repeats.append(clustering)
                 effective_k_repeats.append(effective_k)
@@ -118,7 +118,7 @@ if __name__ == "__main__":
                           seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
             vader.pre_fit(n_epoch=10, verbose=False)
             vader.fit(n_epoch=args.n_epoch, verbose=False)
-            clustering = vader.cluster(input_data)
+            clustering = vader.cluster(input_data, input_weights)
             reconstruction_loss, latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
         total_loss = reconstruction_loss + args.alpha * latent_loss
         with open(args.report_file_path, "a") as f:
