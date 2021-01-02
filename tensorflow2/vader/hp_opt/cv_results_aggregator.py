@@ -1,4 +1,5 @@
 import os
+import math
 import pandas as pd
 import numpy as np
 import scipy.stats
@@ -160,7 +161,10 @@ class CVResultsAggregator:
         ax.set_title("difference")
         ax.set_xlabel("k")
         ax.set_ylabel("diff")
-        ax.set_ylim(diff_df.min().min(), diff_df.max().max())
+        diff_df_min = diff_df.min().min()
+        diff_df_max = diff_df.max().max()
+        if CVResultsAggregator.check_limit(diff_df_min) and CVResultsAggregator.check_limit(diff_df_max):
+            ax.set_ylim(diff_df_min, diff_df_max)
 
     @staticmethod
     def plot_2_1(ax: matplotlib.axes.SubplotBase, pval_df: pd.DataFrame, row_id: int) -> None:
@@ -185,3 +189,7 @@ class CVResultsAggregator:
             ax.set_ylim(1, df_eff_k.columns.max())
         abline_vals = np.array(ax.get_xlim())
         ax.plot(abline_vals, abline_vals, color="grey", linestyle="--")
+
+    @staticmethod
+    def check_limit(number):
+        return number is not None and not math.isnan(number) and not math.isinf(number)
