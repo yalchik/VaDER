@@ -6,7 +6,7 @@ from sklearn.metrics.cluster import adjusted_rand_score
 from scipy.cluster.hierarchy import fcluster, linkage
 from scipy.spatial.distance import squareform
 from vader.hp_opt.common import ClusteringType
-from typing import List, Tuple, Union
+from typing import List, Tuple, Union, Dict
 
 
 class ClusteringUtils:
@@ -104,3 +104,25 @@ class ClusteringUtils:
         mu = df.mean()
         sigma = ClusteringUtils.std_diff(df) / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
         return mu, sigma
+
+    @staticmethod
+    def calc_z_scores(X_train: ndarray) -> ndarray:
+        Xnorm = np.zeros(X_train.shape)
+        std_per_feature = X_train.reshape(-1, 3).std(axis=0)
+        n_features = X_train.shape[2]
+        for i in range(n_features):
+            Xnorm[:, :, i] = (X_train[:, :, i] - np.vstack(X_train[:, 0, i])) / std_per_feature[i]
+        return Xnorm
+
+    @staticmethod
+    def clustering_to_dict(clustering_list: ClusteringType) -> Dict[int, List[int]]:
+        clusters_dict = {}
+        for i, cluster in enumerate(clustering_list):
+            if cluster not in clusters_dict:
+                clusters_dict[cluster] = []
+            clusters_dict[cluster].append(i)
+
+        clusters_dict_reordered = {}
+        for i, k in enumerate(sorted(clusters_dict, key=lambda k: len(clusters_dict[k]), reverse=True)):
+            clusters_dict_reordered[i] = clusters_dict[k]
+        return clusters_dict_reordered
