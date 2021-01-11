@@ -104,6 +104,16 @@ python hyperparameters_optimization.py --input_data_file=../vader_data/ADNI/Xnor
 | seed          | None                        | Any integer     | Initializes the random number generator. It can be used to achieve reproducible results. If None - the random number generator will use its in-built initialization logic (e.g. using the current system time)  |
 | output_folder | Current folder              | Any folder path | Defines a folder where all outputs will be written. Outputs include:<ul><li>final pdf report;</li><li>diffs csv file that was used to generate the pdf report;</li><li>all jobs results in csv format;</li><li>"csv_repeats" folder with intermediate csv chunks;</li><li>"failed_jobs" folder with stack-traces for all failed jobs;</li><li>logging file.</li></ul>  |
 
+The processing time is proportional to ``n_sample * n_repeats * n_splits * n_consensus * n_epoch / n_proc``.
+
+**Output report naming convention**
+
+Generated reports have the following name structure:
+```
+adni_report_n_grid<n>_n_sample<n>_n_repeats<n>_n_splits<n>_n_consensus<n>_n_epoch<n>_n_perm<n>_seed<n>.pdf
+```
+The order of the parameters represents the sequence of processing. ``n_grid`` goes first, because we generated the parameter grid in the beginning of the process. Then, ``n_sample`` goes, because we picked up random samples right after we generated the parameters grid. Then, ``n_repeats`` goes, and so on.
+
 #### VaDER CLI
 Similar to the hyperparameters optimization, there must be a function that transforms input data into a tensor; How to integrate it - see the explanation in the part "Hyperparameters optimization (preparation)"
 
