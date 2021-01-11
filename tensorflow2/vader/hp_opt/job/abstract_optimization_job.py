@@ -85,8 +85,12 @@ class AbstractOptimizationJob(ABC):
                 W_train, W_val = self.weights[train_index], self.weights[val_index]
             else:
                 W_train, W_val = None, None
-            cv_fold_result = self._cv_fold_step(X_train, X_val, W_train, W_val)
-            cv_folds_results_list.append(cv_fold_result)
+            try:
+                cv_fold_result = self._cv_fold_step(X_train, X_val, W_train, W_val)
+                cv_folds_results_list.append(cv_fold_result)
+            except ValueError:
+                print(f"failed job={self.cv_id} has train_index={train_index} and val_index={val_index} and params={self.params_dict}")
+                self.logger.error(f"failed job={self.cv_id} has train_index={train_index} and val_index={val_index} and params={self.params_dict}")
 
         cv_folds_results_df = pd.DataFrame(cv_folds_results_list)
         cv_mean_results_series = cv_folds_results_df.mean()
