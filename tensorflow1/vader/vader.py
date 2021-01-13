@@ -67,7 +67,6 @@ class VADER:
             n_thread : int
                 Number of threads, passed to Tensorflow's intra_op_parallelism_threads and inter_op_parallelism_threads.
                 (default: 0)
-
             Attributes
             ----------
             X : float
@@ -384,7 +383,6 @@ class VADER:
     def fit(self, n_epoch=10, learning_rate=None, verbose=False):
         '''
             Train a VADER object.
-
             Parameters
             ----------
             n_epoch : int
@@ -394,7 +392,6 @@ class VADER:
                 (NB: not currently used!)
             verbose : bool
                 Print progress? (default: False)
-
             Returns
             -------
             0 if successful
@@ -436,7 +433,6 @@ class VADER:
         '''
             Pre-train a VADER object using only the latent loss, and initialize the Gaussian mixture parameters using
             the resulting latent representation.
-
             Parameters
             ----------
             n_epoch : int
@@ -449,7 +445,6 @@ class VADER:
                 (NB: not currently used!)
             verbose : bool
                 Print progress? (default: False)
-
             Returns
             -------
             0 if successful
@@ -500,7 +495,6 @@ class VADER:
     def map_to_latent(self, X_c, W_c=None, n_samp=1):
         '''
             Map an input to its latent representation.
-
             Parameters
             ----------
             X_c : float
@@ -512,7 +506,6 @@ class VADER:
                 value is completely ignored. If None, then no missingness is assumed. (default: None)
             n_samp : int
                 The number of latent samples to take for each input sample. (default: 1)
-
             Returns
             -------
             numpy array containing the latent representations.
@@ -533,7 +526,6 @@ class VADER:
     def get_loss(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
         '''
             Calculate the loss for specific input data and Gaussian mixture parameters.
-
             Parameters
             ----------
             X_c : float
@@ -553,7 +545,6 @@ class VADER:
             phi_c : float
                 The mixture component probabilities. List of length self.K. If None, then the component probabilities of
                  this VADER object are used. (default: None)
-
             Returns
             -------
             Dictionary with two components, "reconstruction_loss" and "latent_loss".
@@ -615,7 +606,6 @@ class VADER:
     def cluster(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
         '''
             Cluster input data using this VADER object.
-
             Parameters
             ----------
             X_c : float
@@ -635,7 +625,6 @@ class VADER:
             phi_c : float
                 The mixture component probabilities. List of length self.K. If None, then the component probabilities of
                  this VADER object are used. (default: None)
-
             Returns
             -------
             Clusters encoded as integers.
@@ -664,7 +653,6 @@ class VADER:
         '''
             Get the cluster averages represented by this VADER object. Technically, this maps the latent Gaussian
             mixture means to output values using this VADER object.
-
             Returns
             -------
             Cluster averages.
@@ -684,7 +672,6 @@ class VADER:
     def get_latent_distribution(self):
         '''
             Get the parameters of the Gaussian mixture distribution of this VADER object.
-
             Returns
             -------
             Dictionary with three components, "mu", "sigma2_sq", "phi".
@@ -709,10 +696,8 @@ class VADER:
     def generate(self, n):
         '''
             Generate random samples from this VADER object.
-
             n : int
                 The number of samples to generate.
-
             Returns
             -------
             A dictionary with two components, "clusters" (cluster indicator) and "samples" (the random samples).
@@ -754,7 +739,6 @@ class VADER:
     def predict(self, X_test, W_test=None):
         '''
             Map input data to output (i.e. reconstructed input).
-
             Parameters
             ----------
             X_test : float numpy array
@@ -762,7 +746,6 @@ class VADER:
             W_test : integer numpy array of same dimensions as X_test
                 Missingness indicator. Entries in X_test for which the corresponding entry in W_test equals 0 are
                 treated as missing. More precisely, their specific numeric value is completely ignored.
-
             Returns
             -------
             numpy array with reconstructed input (i.e. the autoencoder output).
