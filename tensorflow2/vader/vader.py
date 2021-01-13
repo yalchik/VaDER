@@ -2,18 +2,17 @@ import tensorflow as tf
 from scipy.optimize import linear_sum_assignment as linear_assignment
 from sklearn import metrics
 from scipy.stats import multivariate_normal
-import sys
 import numpy as np
 import warnings
 from sklearn.mixture import GaussianMixture
-from vader.vadermodel import VaderModel
+from vadermodel import VaderRNN, VaderFFN, VaderTransformer
 
 class VADER:
     '''
         A VADER object represents a (recurrent) (variational) (Gaussian mixture) autoencoder
     '''
     def __init__(self, X_train, W_train=None, y_train=None, n_hidden=[12, 2], k=3, groups=None, output_activation=None,
-        batch_size = 32, learning_rate=1e-3, alpha=1.0, phi=None, cell_type="LSTM", recurrent=True,
+        batch_size = 32, learning_rate=1e-3, alpha=1.0, phi=None, cell_type="LSTM", cell_params=None, recurrent=True,
         save_path=None, eps=1e-10, seed=None, n_thread=0):
         '''
             Constructor for class VADER
@@ -52,7 +51,15 @@ class VADER:
                 Initial values for the mixture component probabilities. List of length k. If None, then initialization
                 is according to a uniform distribution. (default: None)
             cell_type : str
-                Cell type of the recurrent neural network. Currently only LSTM is supported. (default: "LSTM")
+                Cell type of the (recurrent) neural network in case len(self.X.shape) == 3. [LSTM, GRU, SimpleRNN]
+                (default: "LSTM")
+            cell_params : dict
+                Dictionary with (key, value) pairs for cell_type-specific hyperparameters. Only used for
+                cell_type == "Transformer".
+                (defaults to: {'d_model': 8, 'num_layers': 2, 'num_heads': 2, 'dff': 32, 'max_pe': 1e2, 'rate': 0.0},
+                interpreted as in https://www.tensorflow.org/tutorials/text/transformer#scaled_dot_product_attention.
+                Note that the use of dropout can be debated, due to the regularizing properties of the variational
+                layer.)
             recurrent : bool
                 Train a recurrent autoencoder, or a non-recurrent autoencoder? (default: True)
             save_path : str
@@ -95,7 +102,9 @@ class VADER:
             alpha : float
                 Weight of the latent loss, relative to the reconstruction loss.
             cell_type : str
-                Cell type of the recurrent neural network. Currently only LSTM is supported.
+                Cell type of the recurrent neural network.
+            cell_params : dict
+                Dictionary with (key, value) pairs for cell_type-specific hyperparameters.
             recurrent : bool
                 Train a recurrent autoencoder, or a non-recurrent autoencoder?
             save_path : str
@@ -137,15 +146,18 @@ class VADER:
         if seed is not None:
             np.random.seed(seed)
 
-        # experiment: encode as np.array
-        self.D = np.array(X_train.shape[1], dtype=np.int32)  # dimensionality of input/output
-        self.X = X_train.astype(np.float32)
+        # not guaranteed to work with anything else but 32-bit
+        self.float_type = "float32"
+        self.int_type = "int32"
+
+        self.D = np.array(X_train.shape[1], dtype=self.int_type)  # dimensionality of input/output
+        self.X = X_train.astype(self.float_type)
         if W_train is not None:
-            self.W = W_train.astype(np.int32)
+            self.W = W_train.astype(self.float_type)
         else:
-            self.W = np.ones(X_train.shape, np.int32)
+            self.W = np.ones(X_train.shape, self.float_type)
         if y_train is not None:
-            self.y = np.array(y_train, np.int32)
+            self.y = np.array(y_train, self.int_type)
         else:
             self.y = None
         self.save_path = save_path
@@ -154,13 +166,13 @@ class VADER:
         self.learning_rate = learning_rate
         self.K = k  # 10 number of mixture components (clusters)
         if groups is not None:
-            self.groups = np.array(groups, np.int32)
-            self.G = 1 / np.bincount(groups)[groups]
+            self.groups = np.array(groups, self.float_type)
+            self.G = 1.0 / np.bincount(groups).astype(self.float_type)[groups]
             self.G = self.G / sum(self.G)
             self.G = np.broadcast_to(self.G, self.X.shape)
         else:
-            self.groups = np.ones(X_train.shape[-1], np.int32)
-            self.G = np.ones(X_train.shape, dtype=np.float32)
+            self.groups = np.ones(X_train.shape[-1], self.int_type)
+            self.G = np.ones(X_train.shape, dtype=self.float_type)
 
         self.n_hidden = n_hidden  # n_hidden[-1] is dimensions of the mixture distribution (size of hidden layer)
         if output_activation is None:
@@ -181,23 +193,33 @@ class VADER:
         self.gmm = {'mu': None, 'sigma2': None, 'phi': None}
         self.n_param = None
         self.cell_type = cell_type
+        self.cell_params = cell_params
+        if cell_type == "Transformer" and cell_params is None:
+            self.cell_params = {'d_model': 8, 'num_layers': 2, 'num_heads': 2, 'dff': 32, 'rate': 0.1}
         self.recurrent = recurrent
         # experiment: encode as np.array
         if self.recurrent:
-            self.I = np.array(X_train.shape[2], dtype=np.int32)  # multivariate dimensions
+            self.I = np.array(X_train.shape[2], dtype=self.int_type)  # multivariate dimensions
         else:
-            self.I = np.array(1, dtype=np.int32)
+            self.I = np.array(1, dtype=self.int_type)
 
         if self.seed is not None:
             tf.random.set_seed(self.seed)
 
         self.optimizer = tf.keras.optimizers.Adam(learning_rate=self.learning_rate, beta_1=0.9, beta_2=0.999, name="optimizer")
 
-        self.model = VaderModel(
-            self.X, self.W, self.D, self.K, self.I, self.cell_type, self.n_hidden, self.recurrent,
-            self.output_activation)
-
-
+        if not self.recurrent:
+            self.model = VaderFFN(
+                self.X, self.W, self.D, self.K, self.I, self.cell_type, self.n_hidden, self.recurrent,
+                self.output_activation, self.cell_params)
+        elif self.cell_type == "Transformer":
+            self.model = VaderTransformer(
+                self.X, self.W, self.D, self.K, self.I, self.cell_type, self.n_hidden, self.recurrent,
+                self.output_activation, self.cell_params)
+        else:
+            self.model = VaderRNN(
+                self.X, self.W, self.D, self.K, self.I, self.cell_type, self.n_hidden, self.recurrent,
+                self.output_activation, self.cell_params)
 
         # the state of the untrained model
         self._update_state(self.model)
@@ -220,7 +242,7 @@ class VADER:
             verbose : bool
                 Print progress? (default: False)
             exclude_variables: list of character
-                List of variables to exclude in computing the gradient
+                List of variables to exclude in computing the gradient (currently not used)
 
             Returns
             -------
@@ -229,16 +251,15 @@ class VADER:
 
         @tf.function
         def train_step(X, W, G):
-            GW = G * tf.cast(W, dtype=G.dtype)
             with tf.GradientTape() as tape:
                 x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X, W), training=True)
                 rec_loss = self._reconstruction_loss(
-                    X, x, x_raw, GW, self.output_activation, self.D, self.I, self.eps)
+                    X, x, x_raw, G * W, self.output_activation, self.D, self.I, self.eps)
                 if self.alpha > 0.0:
                     lat_loss = self.alpha * self._latent_loss(
                         z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
                 else:
-                    lat_loss = tf.convert_to_tensor(value=0.0)  # non-variational
+                    lat_loss = tf.convert_to_tensor(value=0.0, dtype=self.float_type)  # non-variational
                 loss = rec_loss + lat_loss
             gradients = tape.gradient(loss, self.model.trainable_variables)
             self.optimizer.apply_gradients(zip(gradients, self.model.trainable_variables))
@@ -251,7 +272,6 @@ class VADER:
         for epoch in range(n_epoch):
             n_batches = self.X.shape[0] // self.batch_size
             for iteration in range(n_batches):
-                sys.stdout.flush()
                 X_batch, y_batch, W_batch, G_batch = self._get_batch(self.batch_size)
                 train_step(X_batch, W_batch, G_batch)
             self._update_state(self.model)
@@ -262,7 +282,7 @@ class VADER:
             tf.keras.models.save_model(self.model, self.save_path, save_format="tf")
         return 0
 
-    def pre_fit(self, n_epoch=10, learning_rate=None, verbose=False):
+    def pre_fit(self, n_epoch=10, GMM_initialize=True, learning_rate=None, verbose=False):
         '''
             Pre-train a VADER object using only the latent loss, and initialize the Gaussian mixture parameters using
             the resulting latent representation.
@@ -271,6 +291,9 @@ class VADER:
             ----------
             n_epoch : int
                 Train n_epoch epochs. (default: 10)
+            GMM_initialize: bool
+                Should a GMM be fit on the pre-trained latent layer, in order to initialize the VaDER
+                mixture component parameters?
             learning_rate: float
                 Learning rate for this set of epochs(default: learning rate specified at object construction)
                 (NB: not currently used!)
@@ -289,39 +312,68 @@ class VADER:
         # pre-train
         ret = self.fit(n_epoch, learning_rate, verbose)
 
-        try:
-            # map to latent
-            z = self.map_to_latent(self.X, self.W, n_samp=10)
-            # fit GMM
-            gmm = GaussianMixture(n_components=self.K, covariance_type="diag", reg_covar=1e-04).fit(z)
-            # get GMM parameters
-            phi = np.log(gmm.weights_ + self.eps) # inverse softmax
-            mu = gmm.means_
-            sigma2 = np.log(np.exp(gmm.covariances_) - 1.0 + self.eps) # inverse softplus
+        if GMM_initialize:
+            try:
+                # map to latent
+                z = self.map_to_latent(self.X, self.W, n_samp=10)
+                # fit GMM
+                gmm = GaussianMixture(n_components=self.K, covariance_type="diag", reg_covar=1e-04).fit(z)
+                # get GMM parameters
+                phi = np.log(gmm.weights_ + self.eps) # inverse softmax
+                mu = gmm.means_
+                def inverse_softplus(x):
+                    b = x < 1e2
+                    x[b] = np.log(np.exp(x[b]) - 1.0 + self.eps)
+                    return x
+                sigma2 = inverse_softplus(gmm.covariances_)
 
-            # initialize mixture components
-            def my_get_variable(varname):
-                return [v for v in self.model.trainable_variables if v.name == varname][0]
-            mu_c_unscaled = my_get_variable("mu_c_unscaled:0")
-            mu_c_unscaled.assign(tf.convert_to_tensor(value=mu, dtype=tf.float32))
-            sigma2_c_unscaled = my_get_variable("sigma2_c_unscaled:0")
-            sigma2_c_unscaled.assign(tf.convert_to_tensor(value=sigma2, dtype=tf.float32))
-            phi_c_unscaled = my_get_variable("phi_c_unscaled:0")
-            phi_c_unscaled.assign(tf.convert_to_tensor(value=phi, dtype=tf.float32))
-        except:
-            warnings.warn("Failed to initialize VaDER with Gaussian mixture")
-        finally:
-            # restore the alpha
-            self.alpha = alpha
+                # initialize mixture components
+                def my_get_variable(varname):
+                    return [v for v in self.model.trainable_variables if v.name == varname][0]
+                mu_c_unscaled = my_get_variable("mu_c_unscaled:0")
+                mu_c_unscaled.assign(tf.convert_to_tensor(value=mu, dtype=self.float_type))
+                sigma2_c_unscaled = my_get_variable("sigma2_c_unscaled:0")
+                sigma2_c_unscaled.assign(tf.convert_to_tensor(value=sigma2, dtype=self.float_type))
+                phi_c_unscaled = my_get_variable("phi_c_unscaled:0")
+                phi_c_unscaled.assign(tf.convert_to_tensor(value=phi, dtype=self.float_type))
+                self.gmm = {'mu': mu, 'sigma2': sigma2, 'phi': phi}
+            except:
+                warnings.warn("Failed to initialize VaDER with Gaussian mixture")
+            finally:
+                pass
+        # restore the alpha
+        self.alpha = alpha
         return ret
 
+    # @tf.function
     def _update_state(self, model):
-        X_batch, y_batch, W_batch, G_batch = self._get_batch(min(20 * self.batch_size, self.X.shape[0]))
-        x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = model((X_batch, W_batch))
-        rec_loss = self._reconstruction_loss(
-            X_batch, x, x_raw, (G_batch * W_batch).astype(np.float32), self.output_activation, self.D, self.I, self.eps)
-        lat_loss = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
-        loss = rec_loss + self.alpha * lat_loss
+        rec_loss = lat_loss = acc = pur = 0
+        n_max = 10
+        for _ in np.arange(n_max):
+            X_batch, y_batch, W_batch, G_batch = self._get_batch(self.batch_size)
+            x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = model((X_batch, W_batch))
+            rec_loss = rec_loss + self._reconstruction_loss(
+                X_batch, x, x_raw, G_batch * W_batch, self.output_activation, self.D, self.I,
+                self.eps)
+            lat_loss = lat_loss + self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+            loss = rec_loss + self.alpha * lat_loss
+            if y_batch is not None:
+                clusters = self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
+                acc = acc + self._accuracy(clusters, y_batch)
+                pur = pur + self._cluster_purity(clusters, y_batch)
+        rec_loss /= n_max
+        lat_loss /= n_max
+        loss /= n_max
+        acc /= n_max
+        pur /= n_max
+
+        # X_batch, y_batch, W_batch, G_batch = self._get_batch(min(10 * self.batch_size, self.X.shape[0]))
+        # x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = model((X_batch, W_batch))
+        # rec_loss = self._reconstruction_loss(
+        #     X_batch, x, x_raw, (G_batch * W_batch).astype(self.float_type), self.output_activation, self.D, self.I, self.eps)
+        # lat_loss = self._latent_loss(z, mu_c, sigma2_c, phi_c, mu_tilde, log_sigma2_tilde, self.K, self.eps)
+        # loss = rec_loss + self.alpha * lat_loss
+
         self.reconstruction_loss = np.append(self.reconstruction_loss, rec_loss)
         self.latent_loss = np.append(self.latent_loss, lat_loss)
         self.loss = np.append(self.loss, loss)
@@ -329,10 +381,7 @@ class VADER:
         self.gmm['sigma2'] = sigma2_c.numpy()
         self.gmm['phi'] = phi_c.numpy()
         if y_batch is not None:
-            clusters = self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
-            acc, _ = self._accuracy(clusters, y_batch)
             self.accuracy = np.append(self.accuracy, acc)
-            pur = self._cluster_purity(clusters, y_batch)
             self.cluster_purity = np.append(self.cluster_purity, pur)
 
     @tf.function
@@ -342,12 +391,13 @@ class VADER:
             rec_loss = tf.compat.v1.losses.sigmoid_cross_entropy(tf.clip_by_value(X, eps, 1 - eps), x_raw, W)
         else:
             rec_loss = tf.compat.v1.losses.mean_squared_error(X, x, W)
+        rec_loss = tf.cast(rec_loss, self.float_type)
 
         # re-scale the loss to the original dims (making sure it balances correctly with the latent loss)
-        num = tf.cast(tf.reduce_prod(input_tensor=tf.shape(input=W)), rec_loss.dtype)
-        den = tf.cast(tf.reduce_sum(input_tensor=W), rec_loss.dtype)
+        num = tf.cast(tf.reduce_prod(input_tensor=tf.shape(input=W)), self.float_type)
+        den = tf.cast(tf.reduce_sum(input_tensor=W), self.float_type)
         rec_loss = rec_loss * num / den
-        rec_loss = rec_loss * tf.cast(D, dtype=rec_loss.dtype) * tf.cast(I, dtype=rec_loss.dtype)
+        rec_loss = rec_loss * self.D * self.I
 
         return rec_loss
 
@@ -366,10 +416,10 @@ class VADER:
 
             # def f(i):
             #     return - 0.5 * (log_sigma2_c[i] + log_2pi + tf.math.square(z - mu_c[i]) / sigma2_c[i])
-            # log_pdf_z = tf.transpose(a=tf.map_fn(f, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            # log_pdf_z = tf.transpose(a=tf.map_fn(f, np.arange(K), fn_output_signature=self.float_type), perm=[1, 0, 2])
 
             N = z.shape[0]
-            ii, jj = tf.meshgrid(tf.range(K, dtype = tf.int32), tf.range(N, dtype = tf.int32))
+            ii, jj = tf.meshgrid(tf.range(K, dtype = self.int_type), tf.range(N, dtype = self.int_type))
             ii = tf.reshape(ii, [N * K])
             jj = tf.reshape(jj, [N * K])
             lsc_b = tf.gather(log_sigma2_c, ii, axis = 0)
@@ -388,14 +438,14 @@ class VADER:
             # # latent loss: E[log p(z|c) + log p(c) - log q(z|x) - log q(c|x)]
             # term1 = tf.math.log(eps + sigma2_c)
             # f2 = lambda i: sigma2_tilde / (eps + sigma2_c[i])
-            # term2 = tf.transpose(a=tf.map_fn(f2, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            # term2 = tf.transpose(a=tf.map_fn(f2, np.arange(K), fn_output_signature=self.float_type), perm=[1, 0, 2])
             # f3 = lambda i: tf.square(mu_tilde - mu_c[i]) / (eps + sigma2_c[i])
-            # term3 = tf.transpose(a=tf.map_fn(f3, np.arange(K), fn_output_signature=tf.float32), perm=[1, 0, 2])
+            # term3 = tf.transpose(a=tf.map_fn(f3, np.arange(K), fn_output_signature=self.float_type), perm=[1, 0, 2])
 
             # latent loss: E[log p(z|c) + log p(c) - log q(z|x) - log q(c|x)]
             term1 = tf.math.log(eps + sigma2_c)
             N = sigma2_tilde.shape[0]
-            ii, jj = tf.meshgrid(tf.range(K, dtype = tf.int32), tf.range(N, dtype = tf.int32))
+            ii, jj = tf.meshgrid(tf.range(K, dtype = self.int_type), tf.range(N, dtype = self.int_type))
             ii = tf.reshape(ii, [N * K])
             jj = tf.reshape(jj, [N * K])
             st_b = tf.gather(sigma2_tilde, jj, axis = 0)
@@ -416,7 +466,7 @@ class VADER:
             latent_loss3 = tf.reduce_mean(input_tensor=latent_loss3)
             # add the different terms
             latent_loss = latent_loss1 + latent_loss2 + latent_loss3
-        return latent_loss
+        return tf.cast(latent_loss, self.float_type)
 
     def _cluster(self, mu_t, mu, sigma2, phi):
         def f(mu_t, mu, sigma2, phi):
@@ -433,15 +483,15 @@ class VADER:
         def cluster_acc(Y_pred, Y):
             assert Y_pred.size == Y.size
             D = max(Y_pred.max(), Y.max()) + 1
-            w = np.zeros((D, D), dtype=np.int32)
+            w = np.zeros((D, D), dtype=self.int_type)
             for i in range(Y_pred.size):
                 w[Y_pred[i], Y[i]] += 1
             ind = np.transpose(np.asarray(linear_assignment(w.max() - w)))
             return sum([w[i, j] for i, j in ind]) * 1.0 / Y_pred.size, np.array(w)
 
-        y_pred = np.array(y_pred, np.int32)
-        y_true = np.array(y_true, np.int32)
-        return cluster_acc(y_pred, y_true)
+        y_pred = np.array(y_pred, self.int_type)
+        y_true = np.array(y_true, self.int_type)
+        return cluster_acc(y_pred, y_true)[0]
 
     def _get_batch(self, batch_size):
         ii = np.random.choice(np.arange(self.X.shape[0]), batch_size, replace=False)
@@ -494,7 +544,9 @@ class VADER:
             numpy array containing the latent representations.
         '''
         if W_c is None:
-            W_c = np.ones(X_c.shape, dtype=np.float32)
+            W_c = np.ones(X_c.shape, dtype=self.float_type)
+        else:
+            W_c = W_c.astype(X_c.dtype)
         return np.concatenate([self.model((X_c, W_c))[5] for i in np.arange(n_samp)], axis=0)
 
     def get_loss(self, X_c, W_c=None, mu_c=None, sigma2_c=None, phi_c=None):
@@ -516,7 +568,7 @@ class VADER:
             Dictionary with two components, "reconstruction_loss" and "latent_loss".
         '''
         if W_c is None:
-            W_c = np.ones(X_c.shape, dtype=np.float32)
+            W_c = np.ones(X_c.shape, dtype=self.float_type)
 
         x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
 
@@ -556,7 +608,9 @@ class VADER:
             Clusters encoded as integers.
         '''
         if W_c is None:
-            W_c = np.ones(X_c.shape)
+            W_c = np.ones(X_c.shape, self.float_type)
+        else:
+            W_c = W_c.astype(self.float_type)
         x, x_raw, mu_c, sigma2_c, phi_c, z, mu_tilde, log_sigma2_tilde = self.model((X_c, W_c))
 
         return self._cluster(mu_tilde, mu_c, sigma2_c, phi_c)
@@ -629,7 +683,9 @@ class VADER:
         '''
 
         if W_test is None:
-            W_test = np.ones(X_test.shape)
+            W_test = np.ones(X_test.shape, self.float_type)
+        else:
+            W_test = W_test.astype(self.float_type)
 
         if self.seed is not None:
             np.random.seed(self.seed)
