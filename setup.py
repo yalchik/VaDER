@@ -19,6 +19,7 @@ setuptools.setup(
         "scipy",
         "sklearn",
         "tensorflow",
+        "tensorflow_addons"
         "matplotlib"
     ],
 )
