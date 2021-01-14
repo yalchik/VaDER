@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 from typing import Tuple
-from vader.utils.data_utils import read_adni_data, read_nacc_data
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
@@ -79,17 +79,17 @@ if __name__ == "__main__":
 
     input_data, input_weights = None, None
     if args.input_data_type == "ADNI":
-        input_data, weights = read_adni_data(args.input_data_file)
-        input_weights = read_adni_data(args.input_weights_file) if args.input_weights_file else weights
+        input_data, weights = read_adni_norm_data(args.input_data_file)
+        input_weights, _ = read_adni_norm_data(args.input_weights_file) if args.input_weights_file else weights, None
     elif args.input_data_type == "NACC":
         input_data, weights = read_nacc_data(args.input_data_file)
-        input_weights = read_nacc_data(args.input_weights_file) if args.input_weights_file else weights
+        input_weights, _ = read_nacc_data(args.input_weights_file) if args.input_weights_file else weights, None
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
         exit(3)
     elif args.input_data_type == "custom":
         input_data, weights = read_custom_data(args.input_data_file)
-        input_weights = read_custom_data(args.input_weights_file) if args.input_weights_file else weights
+        input_weights, _ = read_custom_data(args.input_weights_file) if args.input_weights_file else weights, None
     else:
         print("ERROR: Unknown data type.")
         exit(4)

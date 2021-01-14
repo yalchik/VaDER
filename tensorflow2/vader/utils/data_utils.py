@@ -1,14 +1,13 @@
 import pandas as pd
 import numpy as np
 from collections import defaultdict, OrderedDict
-from typing import Dict, Tuple, Optional, Callable
+from typing import Dict, Tuple, Optional
 
 # Type aliases
 XTensorDict = Dict[str, Dict[str, np.ndarray]]
-ColumnMapperFn = Callable[[str, str, list, list], Tuple[str, str]]
 
 
-def read_artificial_data(filename: str) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+def read_artificial_data(filename: str, class_atr: str = "cluster") -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
     """
     Reads csv file with artificial data and produces 3 numpy arrays:
     1. X tensor, where:
@@ -22,17 +21,28 @@ def read_artificial_data(filename: str) -> Tuple[np.ndarray, np.ndarray, np.ndar
     ----------
     filename : str
         input data file in .csv format.
+    class_atr : str
+        column name that defines class attribute
 
     Returns
     -------
     tuple of 3 elements: X tensor, W tensor and Y vector.
     """
     df = pd.read_csv(filename)
-    x_tensor, w_tensor, y_vector = __df_to_numpy_tensor_and_class_vector(df, class_atr="cluster", feature_time_separator="_")
+    x_dict = defaultdict(dict)
+    y_vector = df[class_atr].to_numpy() if class_atr else None
+    feature_columns = [column for column in df if column != class_atr and "_" in column]
+    for column in feature_columns:
+        feature, time = column.split("_", 1)
+        x_dict[feature][time] = df[column].to_numpy()
+    x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
+    w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
+    x_tensor = np.nan_to_num(x_tensor_with_nans)
     return x_tensor, w_tensor, y_vector
 
 
-def read_adni_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
+def read_adni_norm_data(filename: str, features: tuple = ("CDRSB", "MMSE", "ADAS11"),
+                        time_points: tuple = ("0", "6", "12", "24", "36")) -> Tuple[np.ndarray, np.ndarray]:
     """
     Reads csv file with ADNI data and produces 2 numpy arrays:
     1. X tensor, where:
@@ -45,32 +55,36 @@ def read_adni_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
     ----------
     filename : str
         input data file in .csv format.
+    features : tuple
+        list of required features
+    time_points : tuple
+        list of required time points
 
     Returns
     -------
     tuple of 2 elements: X tensor, W tensor.
     """
-    def column_mapper_fn(column, feature_time_separator, required_features_list, required_time_points_list):
-        time, feature = column.split(feature_time_separator, 1)
-        time = time[1:]  # remove leading 'X'
-        # ignore all non-specified features and time points
-        if feature not in required_features_list or time not in required_time_points_list:
-            return None, None
-        return feature, time
-
     df = pd.read_csv(filename)
-    x_tensor, w_tensor, _ = __df_to_numpy_tensor_and_class_vector(
-        df,
-        class_atr=None,
-        feature_time_separator=".",
-        required_features_list=["CDRSB", "MMSE", "ADAS11"],
-        required_time_points_list=["0", "6", "12", "24", "36"],
-        column_mapper_fn=column_mapper_fn
-    )
+
+    x_dict = OrderedDict.fromkeys(features)
+    for feature in features:
+        x_dict[feature] = OrderedDict.fromkeys(time_points)
+
+    feature_columns = [column for column in df if "." in column]
+    for column in feature_columns:
+        time, feature = column.split(".", 1)
+        time = time[1:]  # remove leading 'X'
+        if feature in features and time in time_points:
+            x_dict[feature][time] = df[column].to_numpy()
+
+    x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
+    w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
+    x_tensor = np.nan_to_num(x_tensor_with_nans)
     return x_tensor, w_tensor
 
 
-def read_nacc_data(filename: str, normalize: bool = True) -> Tuple[np.ndarray, np.ndarray]:
+def read_nacc_data(filename: str, normalize: bool = True,
+                   features: tuple = ("NACCMMSE", "CDRSUM", "NACCFAQ")) -> Tuple[np.ndarray, np.ndarray]:
     """
     Reads csv file with NACC data and produces 2 numpy arrays:
     1. X tensor, where:
@@ -85,42 +99,38 @@ def read_nacc_data(filename: str, normalize: bool = True) -> Tuple[np.ndarray, n
         input data file in .csv format.
     normalize : bool
         if True, the function will normalize the data. Otherwise it will use it without normalization.
+    features : tuple
+        list of required features
 
     Returns
     -------
     tuple of 2 elements: X tensor, W tensor.
     """
     df = pd.read_csv(filename, index_col=0)
-    required_features_list = ["NACCMMSE", "CDRSUM", "NACCFAQ"]
+
+    features_list = list(features)
     if normalize:
-        features_df = df[required_features_list]
-        df[required_features_list] = (features_df - features_df.mean()) / features_df.std()
-    required_time_points_list = [str(i) for i in range(1, df["NACCVNUM"].max()+1)]
-    pivoted_normalized_df = df.pivot(index="NACCID", columns="NACCVNUM", values=required_features_list)
+        features_df = df[features_list]
+        df[features_list] = (features_df - features_df.mean()) / features_df.std()
+    time_points = [str(i) for i in range(1, df["NACCVNUM"].max()+1)]
+    pivoted_normalized_df = df.pivot(index="NACCID", columns="NACCVNUM", values=features_list)
     pivoted_normalized_df.columns = [f"{col[0]}_{col[1]}" for col in pivoted_normalized_df.columns.values]
-    x_tensor, w_tensor, _ = __df_to_numpy_tensor_and_class_vector(
-        pivoted_normalized_df,
-        required_features_list=required_features_list,
-        required_time_points_list=required_time_points_list
-    )
-    return x_tensor, w_tensor
+    df = pivoted_normalized_df
 
+    x_dict = OrderedDict.fromkeys(features)
+    for feature in features:
+        x_dict[feature] = OrderedDict.fromkeys(time_points)
 
-def __df_to_numpy_tensor_and_class_vector(
-        df: pd.DataFrame,
-        class_atr: Optional[str] = None,
-        feature_time_separator: str = "_",
-        required_features_list: list = None,
-        required_time_points_list: list = None,
-        column_mapper_fn: ColumnMapperFn = None
-) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    y_vector = df[class_atr].to_numpy() if class_atr else None
-    x_dict = __map_dataframe_to_xdict(df, class_atr, feature_time_separator, required_features_list,
-                                      required_time_points_list, column_mapper_fn)
+    feature_columns = [column for column in df if "_" in column]
+    for column in feature_columns:
+        feature, time = column.split("_", 1)
+        if feature in features and time in time_points:
+            x_dict[feature][time] = df[column].to_numpy()
+
     x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
     w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
     x_tensor = np.nan_to_num(x_tensor_with_nans)
-    return x_tensor, w_tensor, y_vector
+    return x_tensor, w_tensor
 
 
 def generate_wtensor_from_xtensor(x_tensor: np.ndarray) -> np.ndarray:
@@ -139,35 +149,6 @@ def generate_wtensor_from_xtensor(x_tensor: np.ndarray) -> np.ndarray:
     """
     w = ~np.isnan(x_tensor)
     return w.astype(int)
-
-
-def __map_dataframe_to_xdict(
-        df: pd.DataFrame,
-        class_atr: str,
-        feature_time_separator: str,
-        required_features_list: list,
-        required_time_points_list: list,
-        column_mapper_fn: ColumnMapperFn
-) -> XTensorDict:
-    x_dict = defaultdict(dict)
-    if required_features_list:
-        x_dict = OrderedDict.fromkeys(required_features_list)
-    if required_time_points_list:
-        for feature in required_features_list:
-            x_dict[feature] = OrderedDict.fromkeys(required_time_points_list)
-
-    for column in df:
-        if column == class_atr:
-            continue
-        if feature_time_separator in column:
-            if column_mapper_fn:
-                feature, time = column_mapper_fn(column, feature_time_separator, required_features_list,
-                                                 required_time_points_list)
-            else:
-                feature, time = column.split(feature_time_separator, 1)
-            if feature and time:
-                x_dict[feature][time] = df[column].to_numpy()
-    return x_dict
 
 
 def __map_xdict_to_xtensor(x_dict: XTensorDict) -> np.ndarray:
