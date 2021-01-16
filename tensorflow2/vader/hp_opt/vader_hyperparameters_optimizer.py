@@ -192,13 +192,14 @@ class VADERHyperparametersOptimizer:
         -------
         A single optimization job result, which contains a certain set of hyperparameters and performance metrics.
         """
+        job_params_dict = params_tuple[2]
         job = FullOptimizationJob(*params_tuple)
         try:
-            self.logger.info(f"Job has started with id={job.cv_id}")
+            self.logger.info(f"Job has started with id={job.cv_id} and job_params_dict={job_params_dict}")
             result = job.run()
-            self.logger.info(f"Job has finished with id={job.cv_id}")
+            self.logger.info(f"Job has finished with id={job.cv_id} and job_params_dict={job_params_dict}")
         except Exception as err:
-            error_message = f"Job failed: {job.cv_id} with err={err}, Traceback: {traceback.format_exc()}"
+            error_message = f"Job failed: {job.cv_id} and job_params_dict={job_params_dict}\n{traceback.format_exc()}"
             log_file = os.path.join(self.failed_jobs_dir, f"{job.cv_id}.log")
             with open(log_file, "w") as f:
                 f.write(error_message)
