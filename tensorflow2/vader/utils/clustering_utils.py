@@ -106,9 +106,10 @@ class ClusteringUtils:
         return mu, sigma
 
     @staticmethod
-    def calc_z_scores(X_train: ndarray) -> ndarray:
+    def calc_z_scores(X_train: ndarray, std_per_feature: ndarray = None) -> ndarray:
         Xnorm = np.zeros(X_train.shape)
-        std_per_feature = X_train.reshape(-1, 3).std(axis=0)
+        if not std_per_feature:
+            std_per_feature = X_train.reshape(-1, 3).std(axis=0)
         n_features = X_train.shape[2]
         for i in range(n_features):
             Xnorm[:, :, i] = (X_train[:, :, i] - np.vstack(X_train[:, 0, i])) / std_per_feature[i]
