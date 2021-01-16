@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 from typing import Tuple
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
@@ -56,7 +56,7 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, required=True, help=".csv file with input data")
-    parser.add_argument("--input_data_type", type=str, choices=["ADNI", "NACC", "PPMI", "custom"], required=True)
+    parser.add_argument("--input_data_type", type=str, choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "custom"], required=True)
     parser.add_argument("--input_weights_file", type=str, help=".csv file with flags for missing values")
     parser.add_argument("--input_seed", type=int, help="used both as KFold random_state and VaDER seed")
     parser.add_argument("--n_repeats", type=int, default=10, help="number of repeats, default 10")
@@ -87,6 +87,9 @@ if __name__ == "__main__":
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
         exit(3)
+    elif args.input_data_type == "ADNI_RAW":
+        input_data, weights = read_adni_raw_data(args.input_data_file)
+        input_weights, _ = read_adni_raw_data(args.input_weights_file) if args.input_weights_file else weights, None
     elif args.input_data_type == "custom":
         input_data, weights = read_custom_data(args.input_data_file)
         input_weights, _ = read_custom_data(args.input_weights_file) if args.input_weights_file else weights, None

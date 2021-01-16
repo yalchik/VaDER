@@ -2,10 +2,12 @@ import os
 import sys
 import argparse
 import numpy as np
+import matplotlib.pyplot as plt
 from typing import Tuple
 from collections import Counter
 from vader import VADER
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data
+from vader.utils.plot_utils import plot_z_scores
 from vader.utils.clustering_utils import ClusteringUtils
 
 
@@ -43,7 +45,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, help="a .csv file with input data", required=True)
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
-    parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "custom"], help="data type",
+    parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "custom"], help="data type",
                         required=True)
     parser.add_argument("--n_repeats", type=int, default=1, help="number of repeats")
     parser.add_argument("--n_epoch", type=int, default=20, help="number of training epochs")
@@ -68,14 +70,23 @@ if __name__ == "__main__":
 
     input_data, input_weights = None, None
     if args.input_data_type == "ADNI":
+        features = ("CDRSB", "MMSE", "ADAS11"),
+        time_points = ("0", "6", "12", "24", "36")
         input_data, weights = read_adni_norm_data(args.input_data_file)
         input_weights, _ = read_adni_norm_data(args.input_weights_file) if args.input_weights_file else weights, None
     elif args.input_data_type == "NACC":
+        features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
         input_data, weights = read_nacc_data(args.input_data_file)
         input_weights, _ = read_nacc_data(args.input_weights_file) if args.input_weights_file else weights, None
+        time_points = [str(i) for i in range(1, input_data.shape[1]+1)]
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
         exit(3)
+    elif args.input_data_type == "ADNI_RAW":
+        features = ("CDRSB", "MMSE", "ADAS11")
+        time_points = ['bl', 'm06', 'm12', 'm18', 'm24', 'm03', 'm30', 'm36', 'm42', 'm48', 'm54', 'm60', 'm72', 'm84']
+        input_data, weights = read_adni_raw_data(args.input_data_file)
+        input_weights, _ = read_adni_raw_data(args.input_weights_file) if args.input_weights_file else weights, None
     elif args.input_data_type == "custom":
         input_data, weights = read_custom_data(args.input_data_file)
         input_weights, _ = read_custom_data(args.input_weights_file) if args.input_weights_file else weights, None
@@ -127,3 +138,6 @@ if __name__ == "__main__":
                     f"Lat loss: {latent_loss}\n"
                     f"Total loss: {total_loss}\n"
                     f"{clustering}\n\n")
+
+        _ = plot_z_scores(input_data, clustering, features, time_points)
+        plt.savefig(args.report_file_path + '.pdf')
