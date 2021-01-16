@@ -133,6 +133,44 @@ def read_nacc_data(filename: str, normalize: bool = True,
     return x_tensor, w_tensor
 
 
+def read_adni_raw_data(filename: str, normalize: bool = True,
+                       features: tuple = ("CDRSB", "MMSE", "ADAS11"),
+                       index: tuple = ("PTID", "VISCODE")) -> Tuple[np.ndarray, np.ndarray]:
+    features_list = list(features)
+    index_list = list(index)
+    columns_list = index_list + features_list
+
+    df = pd.read_csv(filename)
+    patients_list = df.loc[df.DX_bl == "AD"].PTID.unique()  # select all patients who was at least once diagnosed as AD
+    df_ad = df.loc[df.PTID.isin(patients_list)].sort_values(by=index_list)
+    time_points_list = df_ad.VISCODE.unique()  # time points for AD patients
+    time_points = tuple(time_points_list)
+    df_ad_filtered = df_ad.loc[:, columns_list]
+
+    if normalize:
+        features_df = df_ad_filtered[features_list]
+        df_ad_filtered[features_list] = (features_df - features_df.mean()) / features_df.std()
+
+    df_ad_filtered_normalized_pivoted = df_ad_filtered.pivot(index=index[0], columns=index[1], values=features_list)
+    df_ad_filtered_normalized_pivoted.columns = [f"{col[0]}_{col[1]}" for col in
+                                                 df_ad_filtered_normalized_pivoted.columns.values]
+    df = df_ad_filtered_normalized_pivoted
+
+    x_dict = OrderedDict.fromkeys(features)
+    for feature in features:
+        x_dict[feature] = OrderedDict.fromkeys(time_points)
+
+    feature_columns = [column for column in df if "_" in column]
+    for column in feature_columns:
+        feature, time = column.split("_", 1)
+        x_dict[feature][time] = df[column].to_numpy()
+
+    x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
+    w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
+    x_tensor = np.nan_to_num(x_tensor_with_nans)
+    return x_tensor, w_tensor
+
+
 def generate_wtensor_from_xtensor(x_tensor: np.ndarray) -> np.ndarray:
     """
     Generates W tensor, which has the same shape as X tensor, but defines if the corresponding value in X tensor is
