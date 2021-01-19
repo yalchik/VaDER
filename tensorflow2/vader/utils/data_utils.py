@@ -133,25 +133,55 @@ def read_nacc_data(filename: str, normalize: bool = True,
     return x_tensor, w_tensor
 
 
+def preprocess_adni_patient(df_p, time_points_list):
+    # get first time point with Dementia
+    time_points_ad = df_p.loc[df_p.DX == "Dementia"]
+    if not len(time_points_ad):
+        time_points_ad = df_p.loc[df_p.DX_bl == "AD"]
+
+    first_dementia_tp = time_points_ad.iloc[0].TIME_POINT
+
+    # get offset
+    time_points_index_dict = {tp: i for i, tp in enumerate(time_points_list)}
+    offset = time_points_index_dict[first_dementia_tp]
+    if offset:
+        df_p_new = df_p.iloc[offset - 1:].copy()
+        df_p_new["TIME_POINT"] = df_p_new["TIME_POINT"].apply(
+            lambda x: time_points_list[time_points_index_dict[x] - offset])
+    else:
+        df_p_new = df_p.copy()
+    return df_p_new
+
+
+def preprocess_adni_data(df):
+    patients_list = df.loc[(df.DX_bl == "AD") | (
+            df.DX == "Dementia")].PTID.unique()  # select all patients who was at least once diagnosed as AD
+
+    df_ad = df.loc[df.PTID.isin(patients_list)].copy()
+    df_ad['TIME_POINT'] = df_ad['VISCODE'].apply(lambda x: int(x[1:]) if x != "bl" else 0)
+    df_ad = df_ad.sort_values(by=["PTID", "TIME_POINT"])
+
+    time_points_list = sorted(df_ad.TIME_POINT.unique())  # time points for AD patients
+
+    processed_patients_df_list = []
+    for patient_id in patients_list:
+        df_p = df_ad.loc[df.PTID == patient_id]
+        df_p_processed = preprocess_adni_patient(df_p, time_points_list)
+        processed_patients_df_list.append(df_p_processed)
+
+    df_processed = pd.concat(processed_patients_df_list)
+    return df_processed
+
+
 def read_adni_raw_data(filename: str, normalize: bool = True,
-                       features: tuple = ("CDRSB", "MMSE", "ADAS11"),
-                       index: tuple = ("PTID", "VISCODE")) -> Tuple[np.ndarray, np.ndarray]:
+                       features: tuple = ("CDRSB", "MMSE", "ADAS11")) -> Tuple[np.ndarray, np.ndarray]:
     features_list = list(features)
-    index_list = list(index)
-    columns_list = index_list + features_list
 
-    df = pd.read_csv(filename)
-    patients_list = df.loc[df.DX_bl == "AD"].PTID.unique()  # select all patients who was at least once diagnosed as AD
-    df_ad = df.loc[df.PTID.isin(patients_list)].sort_values(by=index_list)
-    time_points_list = df_ad.VISCODE.unique()  # time points for AD patients
-    time_points = tuple(time_points_list)
-    df_ad_filtered = df_ad.loc[:, columns_list]
+    df = pd.read_csv(filename).loc[:, ("PTID", "VISCODE", "DX_bl", "DX", "CDRSB", "MMSE", "ADAS11")]
+    df_ad_filtered = preprocess_adni_data(df).loc[:, ("PTID", "TIME_POINT", "CDRSB", "MMSE", "ADAS11")]
+    time_points: tuple = ("0", "6", "12", "24", "36")
 
-    if normalize:
-        features_df = df_ad_filtered[features_list]
-        df_ad_filtered[features_list] = (features_df - features_df.mean()) / features_df.std()
-
-    df_ad_filtered_normalized_pivoted = df_ad_filtered.pivot(index=index[0], columns=index[1], values=features_list)
+    df_ad_filtered_normalized_pivoted = df_ad_filtered.pivot(index="PTID", columns="TIME_POINT", values=features_list)
     df_ad_filtered_normalized_pivoted.columns = [f"{col[0]}_{col[1]}" for col in
                                                  df_ad_filtered_normalized_pivoted.columns.values]
     df = df_ad_filtered_normalized_pivoted
@@ -163,11 +193,21 @@ def read_adni_raw_data(filename: str, normalize: bool = True,
     feature_columns = [column for column in df if "_" in column]
     for column in feature_columns:
         feature, time = column.split("_", 1)
-        x_dict[feature][time] = df[column].to_numpy()
+        if feature in features and time in time_points:
+            x_dict[feature][time] = df[column].to_numpy()
 
     x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
+
+    x_tensor_with_nans_norm = np.zeros(x_tensor_with_nans.shape)
+
+    # normalization
+    adni_std = [1.720699, 6.699345, 2.682827]
+    for i in range(x_tensor_with_nans_norm.shape[2]):
+        x_tensor_with_nans_norm[:, :, i] = (x_tensor_with_nans[:, :, i] - np.vstack(x_tensor_with_nans[:, 0, i])) / \
+                                           adni_std[i]
+
     w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
-    x_tensor = np.nan_to_num(x_tensor_with_nans)
+    x_tensor = np.nan_to_num(x_tensor_with_nans_norm)
     return x_tensor, w_tensor
 
 
