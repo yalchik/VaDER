@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 from collections import defaultdict, OrderedDict
 from typing import Dict, Tuple, Optional
+from vader.utils.clustering_utils import ClusteringUtils
 
 # Type aliases
 XTensorDict = Dict[str, Dict[str, np.ndarray]]
@@ -42,7 +43,7 @@ def read_artificial_data(filename: str, class_atr: str = "cluster") -> Tuple[np.
 
 
 def read_adni_norm_data(filename: str, features: tuple = ("CDRSB", "MMSE", "ADAS11"),
-                        time_points: tuple = ("0", "6", "12", "24", "36")) -> Tuple[np.ndarray, np.ndarray]:
+                        time_points: tuple = ("0", "6", "12", "24", "36")) -> np.ndarray:
     """
     Reads csv file with ADNI data and produces 2 numpy arrays:
     1. X tensor, where:
@@ -78,13 +79,11 @@ def read_adni_norm_data(filename: str, features: tuple = ("CDRSB", "MMSE", "ADAS
             x_dict[feature][time] = df[column].to_numpy()
 
     x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
-    w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
-    x_tensor = np.nan_to_num(x_tensor_with_nans)
-    return x_tensor, w_tensor
+    return x_tensor_with_nans
 
 
 def read_nacc_data(filename: str, normalize: bool = True,
-                   features: tuple = ("NACCMMSE", "CDRSUM", "NACCFAQ")) -> Tuple[np.ndarray, np.ndarray]:
+                   features: tuple = ("NACCMMSE", "CDRSUM", "NACCFAQ")) -> np.ndarray:
     """
     Reads csv file with NACC data and produces 2 numpy arrays:
     1. X tensor, where:
@@ -128,9 +127,7 @@ def read_nacc_data(filename: str, normalize: bool = True,
             x_dict[feature][time] = df[column].to_numpy()
 
     x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
-    w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
-    x_tensor = np.nan_to_num(x_tensor_with_nans)
-    return x_tensor, w_tensor
+    return x_tensor_with_nans
 
 
 def preprocess_adni_patient(df_p, time_points_list):
@@ -174,7 +171,7 @@ def preprocess_adni_data(df):
 
 
 def read_adni_raw_data(filename: str, normalize: bool = True,
-                       features: tuple = ("CDRSB", "MMSE", "ADAS11")) -> Tuple[np.ndarray, np.ndarray]:
+                       features: tuple = ("CDRSB", "MMSE", "ADAS11")) -> np.ndarray:
     features_list = list(features)
 
     df = pd.read_csv(filename).loc[:, ("PTID", "VISCODE", "DX_bl", "DX", "CDRSB", "MMSE", "ADAS11")]
@@ -198,17 +195,11 @@ def read_adni_raw_data(filename: str, normalize: bool = True,
 
     x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
 
-    x_tensor_with_nans_norm = np.zeros(x_tensor_with_nans.shape)
+    if normalize:
+        adni_std = np.array([1.720699, 6.699345, 2.682827])
+        x_tensor_with_nans = ClusteringUtils.calc_z_scores(x_tensor_with_nans, adni_std)
 
-    # normalization
-    adni_std = [1.720699, 6.699345, 2.682827]
-    for i in range(x_tensor_with_nans_norm.shape[2]):
-        x_tensor_with_nans_norm[:, :, i] = (x_tensor_with_nans[:, :, i] - np.vstack(x_tensor_with_nans[:, 0, i])) / \
-                                           adni_std[i]
-
-    w_tensor = generate_wtensor_from_xtensor(x_tensor_with_nans)
-    x_tensor = np.nan_to_num(x_tensor_with_nans_norm)
-    return x_tensor, w_tensor
+    return x_tensor_with_nans
 
 
 def generate_wtensor_from_xtensor(x_tensor: np.ndarray) -> np.ndarray:

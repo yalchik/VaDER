@@ -4,7 +4,7 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 from typing import Tuple
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, generate_wtensor_from_xtensor
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
@@ -18,9 +18,9 @@ class PlainParamGridFactory(ParamGridFactory):
         """
         param_dict = {
             "k": list(range(2, 7)),
-            "n_hidden": [[128, 8], [32, 8], [128, 32], [64, 16]],
-            "learning_rate": [0.001, 0.01],
-            "batch_size": [16, 64],
+            "n_hidden": [[128, 8], [64, 8], [32, 8], [128, 16], [64, 16]],
+            "learning_rate": [0.0001, 0.001, 0.01],
+            "batch_size": [16, 32, 64],
             "alpha": [1.0]
         }
         return param_dict
@@ -77,25 +77,29 @@ if __name__ == "__main__":
         print("ERROR: weights data file does not exist")
         sys.exit(2)
 
-    input_data, input_weights = None, None
+    x_tensor = None
     if args.input_data_type == "ADNI":
-        input_data, weights = read_adni_norm_data(args.input_data_file)
-        input_weights, _ = read_adni_norm_data(args.input_weights_file) if args.input_weights_file else weights, None
+        x_tensor = read_adni_norm_data(args.input_data_file)
     elif args.input_data_type == "NACC":
-        input_data, weights = read_nacc_data(args.input_data_file)
-        input_weights, _ = read_nacc_data(args.input_weights_file) if args.input_weights_file else weights, None
+        x_tensor = read_nacc_data(args.input_data_file)
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
         exit(3)
     elif args.input_data_type == "ADNI_RAW":
-        input_data, weights = read_adni_raw_data(args.input_data_file)
-        input_weights, _ = read_adni_raw_data(args.input_weights_file) if args.input_weights_file else weights, None
+        x_tensor = read_adni_raw_data(args.input_data_file)
     elif args.input_data_type == "custom":
-        input_data, weights = read_custom_data(args.input_data_file)
-        input_weights, _ = read_custom_data(args.input_weights_file) if args.input_weights_file else weights, None
+        x_tensor = read_custom_data(args.input_data_file)
     else:
         print("ERROR: Unknown data type.")
         exit(4)
+
+    if x_tensor is None:
+        print("ERROR: Cannot load input data.")
+        exit(5)
+
+    w_tensor = generate_wtensor_from_xtensor(x_tensor)
+    input_data = np.nan_to_num(x_tensor)
+    input_weights = w_tensor
 
     optimizer = VADERHyperparametersOptimizer(
         param_grid_factory=PlainParamGridFactory(),

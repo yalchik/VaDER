@@ -5,13 +5,13 @@ import matplotlib
 import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from numpy import ndarray
-from typing import List
+from typing import List, Union, Tuple
 from vader.hp_opt.common import ClusteringType
 from vader.utils.clustering_utils import ClusteringUtils
 
 
-def plot_z_scores(X_train: ndarray, clustering_list: ClusteringType, features_list: List[str],
-                  time_points_list: List[int], cmap_name: str = "Set1") -> matplotlib.figure.Figure:
+def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_list: List[str],
+                  time_points_list: Union[List[int], tuple], cmap_name: str = "Set1") -> matplotlib.figure.Figure:
     """
     Generates normalized cluster mean trajectories relative to baseline (x-axis in months).
     Reference: Figure 4 from the paper.
@@ -28,7 +28,7 @@ def plot_z_scores(X_train: ndarray, clustering_list: ClusteringType, features_li
     #  1st dimension is features
     #  2nd dimension is samples
     #  3rd dimension is time points
-    z_scores_by_feature = ClusteringUtils.calc_z_scores(X_train).transpose((2, 0, 1))
+    z_scores_by_feature = x_tensor.transpose((2, 0, 1))
 
     # start plotting
     fig, axs = plt.subplots(n_plots, n_plots, figsize=(15, 10))

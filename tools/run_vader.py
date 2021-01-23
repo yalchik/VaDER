@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from typing import Tuple
 from collections import Counter
 from vader import VADER
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, generate_wtensor_from_xtensor
 from vader.utils.plot_utils import plot_z_scores
 from vader.utils.clustering_utils import ClusteringUtils
 
@@ -38,16 +38,14 @@ if __name__ == "__main__":
     python run_vader.py --input_data_file=../data/ADNI/Xnorm.csv
                         --input_data_type=ADNI
                         --save_path=../vader_results/model/
-                        --report_file_path=../vader_results/run_vader_report.txt
-                        --k=4 --n_hidden 128 8 --learning_rate=1e-3 --batch_size=32 --alpha=1
-                        --n_repeats=1 --n_epoch=20                        
+                        --output_path=../vader_results/clustering/
+                        --k=4 --n_hidden 128 8 --learning_rate=1e-3 --batch_size=32 --alpha=1 --n_epoch=20                        
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, help="a .csv file with input data", required=True)
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
     parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "custom"], help="data type",
                         required=True)
-    parser.add_argument("--n_repeats", type=int, default=1, help="number of repeats")
     parser.add_argument("--n_epoch", type=int, default=20, help="number of training epochs")
     parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering")
     parser.add_argument("--k", type=int, help="number of repeats", required=True)
@@ -57,7 +55,7 @@ if __name__ == "__main__":
     parser.add_argument("--alpha", type=float, help="alpha", required=True)
     parser.add_argument("--save_path", type=str, help="model save path")
     parser.add_argument("--seed", type=int, help="seed")
-    parser.add_argument("--report_file_path", type=str, required=True)
+    parser.add_argument("--output_path", type=str, required=True)
     args = parser.parse_args()
 
     if not os.path.exists(args.input_data_file):
@@ -68,76 +66,93 @@ if __name__ == "__main__":
         print("ERROR: weights data file does not exist")
         sys.exit(2)
 
-    input_data, input_weights = None, None
+    if not os.path.exists(args.output_path):
+        os.makedirs(args.output_path, exist_ok=True)
+
+    x_tensor, features, time_points = None, None, None
     if args.input_data_type == "ADNI":
         features = ("CDRSB", "MMSE", "ADAS11"),
         time_points = ("0", "6", "12", "24", "36")
-        input_data, weights = read_adni_norm_data(args.input_data_file)
-        input_weights, _ = read_adni_norm_data(args.input_weights_file) if args.input_weights_file else weights, None
+        x_tensor = read_adni_norm_data(args.input_data_file)
     elif args.input_data_type == "NACC":
         features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
-        input_data, weights = read_nacc_data(args.input_data_file)
-        input_weights, _ = read_nacc_data(args.input_weights_file) if args.input_weights_file else weights, None
-        time_points = [str(i) for i in range(1, input_data.shape[1]+1)]
+        x_tensor = read_nacc_data(args.input_data_file)
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
         exit(3)
     elif args.input_data_type == "ADNI_RAW":
         features = ("CDRSB", "MMSE", "ADAS11")
-        time_points = ['bl', 'm06', 'm12', 'm18', 'm24', 'm03', 'm30', 'm36', 'm42', 'm48', 'm54', 'm60', 'm72', 'm84']
-        input_data, weights = read_adni_raw_data(args.input_data_file)
-        input_weights, _ = read_adni_raw_data(args.input_weights_file) if args.input_weights_file else weights, None
+        time_points = ("0", "6", "12", "24", "36")
+        x_tensor = read_adni_raw_data(args.input_data_file)
     elif args.input_data_type == "custom":
-        input_data, weights = read_custom_data(args.input_data_file)
-        input_weights, _ = read_custom_data(args.input_weights_file) if args.input_weights_file else weights, None
+        x_tensor = read_custom_data(args.input_data_file)
     else:
         print("ERROR: Unknown data type.")
         exit(4)
 
+    if x_tensor is None:
+        print("ERROR: Cannot load input data.")
+        exit(5)
+
+    w_tensor = generate_wtensor_from_xtensor(x_tensor)
+    input_data = np.nan_to_num(x_tensor)
+    input_weights = w_tensor
     n_hidden = [int(layer_size) for layer_size in args.n_hidden]
 
-    for i in range(args.n_repeats):
-        if args.n_consensus and args.n_consensus > 1:
-            y_pred_repeats = []
-            effective_k_repeats = []
-            train_reconstruction_loss_repeats = []
-            train_latent_loss_repeats = []
-            for j in range(args.n_consensus):
-                seed = f"{args.seed}{i}{j}" if args.seed else None
-                # noinspection PyTypeChecker
-                vader = VADER(X_train=input_data, W_train=input_weights, k=args.k, n_hidden=n_hidden,
-                              learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
-                              seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
-                vader.pre_fit(n_epoch=10, verbose=False)
-                vader.fit(n_epoch=args.n_epoch, verbose=False)
-                clustering = vader.cluster(input_data, input_weights)
-                effective_k = len(Counter(clustering))
-                y_pred_repeats.append(clustering)
-                effective_k_repeats.append(effective_k)
-                train_reconstruction_loss_repeats.append(vader.reconstruction_loss[-1])
-                train_latent_loss_repeats.append(vader.latent_loss[-1])
-            effective_k = np.mean(effective_k_repeats)
-            num_of_clusters = round(float(effective_k))
-            clustering = ClusteringUtils.consensus_clustering(y_pred_repeats, num_of_clusters)
-            reconstruction_loss = np.mean(train_reconstruction_loss_repeats)
-            latent_loss = np.mean(train_latent_loss_repeats)
-        else:
-            seed = f"{args.seed}{i}" if args.seed else None
+    if args.n_consensus and args.n_consensus > 1:
+        y_pred_repeats = []
+        effective_k_repeats = []
+        train_reconstruction_loss_repeats = []
+        train_latent_loss_repeats = []
+        for j in range(args.n_consensus):
+            seed = f"{args.seed}{i}{j}" if args.seed else None
             # noinspection PyTypeChecker
             vader = VADER(X_train=input_data, W_train=input_weights, k=args.k, n_hidden=n_hidden,
                           learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
                           seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
             vader.pre_fit(n_epoch=10, verbose=False)
             vader.fit(n_epoch=args.n_epoch, verbose=False)
+            # noinspection PyTypeChecker
             clustering = vader.cluster(input_data, input_weights)
-            reconstruction_loss, latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
-        total_loss = reconstruction_loss + args.alpha * latent_loss
-        with open(args.report_file_path, "a") as f:
-            f.write(f"Proportion: {Counter(clustering)}\n"
-                    f"Reconstruction loss: {reconstruction_loss}\n"
-                    f"Lat loss: {latent_loss}\n"
-                    f"Total loss: {total_loss}\n"
-                    f"{clustering}\n\n")
+            effective_k = len(Counter(clustering))
+            y_pred_repeats.append(clustering)
+            effective_k_repeats.append(effective_k)
+            train_reconstruction_loss_repeats.append(vader.reconstruction_loss[-1])
+            train_latent_loss_repeats.append(vader.latent_loss[-1])
+        effective_k = np.mean(effective_k_repeats)
+        num_of_clusters = round(float(effective_k))
+        clustering = ClusteringUtils.consensus_clustering(y_pred_repeats, num_of_clusters)
+        reconstruction_loss = np.mean(train_reconstruction_loss_repeats)
+        latent_loss = np.mean(train_latent_loss_repeats)
+    else:
+        seed = f"{args.seed}{i}" if args.seed else None
+        # noinspection PyTypeChecker
+        vader = VADER(X_train=input_data, W_train=input_weights, k=args.k, n_hidden=n_hidden,
+                      learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
+                      seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
+        vader.pre_fit(n_epoch=10, verbose=False)
+        vader.fit(n_epoch=args.n_epoch, verbose=False)
+        # noinspection PyTypeChecker
+        clustering = vader.cluster(input_data, input_weights)
+        reconstruction_loss, latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
+    total_loss = reconstruction_loss + args.alpha * latent_loss
 
-        _ = plot_z_scores(input_data, clustering, features, time_points)
-        plt.savefig(args.report_file_path + '.pdf')
+    report_file = f"{args.input_data_type}_k{str(args.k)}" \
+                  f"_n_hidden{'_'.join(args.n_hidden)}" \
+                  f"_learning_rate{str(args.learning_rate)}" \
+                  f"_batch_size{str(args.batch_size)}" \
+                  f"_n_epoch{str(args.n_epoch)}" \
+                  f"_n_consensus{str(args.n_consensus)}"
+    report_file_path = os.path.join(args.output_path, report_file + ".txt")
+    plot_file_path = os.path.join(args.output_path, report_file + ".pdf")
+
+    with open(report_file_path, "a+") as f:
+        f.write(f"Proportion: {Counter(clustering)}\n"
+                f"Reconstruction loss: {reconstruction_loss}\n"
+                f"Lat loss: {latent_loss}\n"
+                f"Total loss: {total_loss}\n"
+                f"{clustering}\n\n")
+
+    if features and time_points:
+        _ = plot_z_scores(x_tensor, clustering, list(features), time_points)
+        plt.savefig(plot_file_path)
