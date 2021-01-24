@@ -4,7 +4,8 @@ import argparse
 import numpy as np
 import multiprocessing as mp
 from typing import Tuple
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, generate_wtensor_from_xtensor
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data,\
+    generate_wtensor_from_xtensor, read_nacc_raw_data
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
@@ -56,7 +57,7 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, required=True, help=".csv file with input data")
-    parser.add_argument("--input_data_type", type=str, choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "custom"], required=True)
+    parser.add_argument("--input_data_type", type=str, choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "NACC_RAW", "custom"], required=True)
     parser.add_argument("--input_weights_file", type=str, help=".csv file with flags for missing values")
     parser.add_argument("--input_seed", type=int, help="used both as KFold random_state and VaDER seed")
     parser.add_argument("--n_repeats", type=int, default=10, help="number of repeats, default 10")
@@ -87,6 +88,8 @@ if __name__ == "__main__":
         exit(3)
     elif args.input_data_type == "ADNI_RAW":
         x_tensor = read_adni_raw_data(args.input_data_file)
+    elif args.input_data_type == "NACC_RAW":
+        x_tensor = read_nacc_raw_data(args.input_data_file)
     elif args.input_data_type == "custom":
         x_tensor = read_custom_data(args.input_data_file)
     else:

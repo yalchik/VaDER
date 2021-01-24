@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 from typing import Tuple
 from collections import Counter
 from vader import VADER
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, generate_wtensor_from_xtensor
+from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, read_nacc_raw_data, \
+    generate_wtensor_from_xtensor
 from vader.utils.plot_utils import plot_z_scores
 from vader.utils.clustering_utils import ClusteringUtils
 
@@ -44,7 +45,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, help="a .csv file with input data", required=True)
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
-    parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "custom"], help="data type",
+    parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "NACC_RAW", "custom"], help="data type",
                         required=True)
     parser.add_argument("--n_epoch", type=int, default=20, help="number of training epochs")
     parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering")
@@ -76,6 +77,7 @@ if __name__ == "__main__":
         x_tensor = read_adni_norm_data(args.input_data_file)
     elif args.input_data_type == "NACC":
         features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
+        time_points = tuple(range(15))
         x_tensor = read_nacc_data(args.input_data_file)
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
@@ -84,6 +86,10 @@ if __name__ == "__main__":
         features = ("CDRSB", "MMSE", "ADAS11")
         time_points = ("0", "6", "12", "24", "36")
         x_tensor = read_adni_raw_data(args.input_data_file)
+    elif args.input_data_type == "NACC_RAW":
+        features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
+        time_points = tuple(range(15))
+        x_tensor = read_nacc_raw_data(args.input_data_file)
     elif args.input_data_type == "custom":
         x_tensor = read_custom_data(args.input_data_file)
     else:

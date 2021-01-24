@@ -108,9 +108,6 @@ def read_nacc_data(filename: str, normalize: bool = True,
     df = pd.read_csv(filename, index_col=0)
 
     features_list = list(features)
-    if normalize:
-        features_df = df[features_list]
-        df[features_list] = (features_df - features_df.mean()) / features_df.std()
     time_points = [str(i) for i in range(1, df["NACCVNUM"].max()+1)]
     pivoted_normalized_df = df.pivot(index="NACCID", columns="NACCVNUM", values=features_list)
     pivoted_normalized_df.columns = [f"{col[0]}_{col[1]}" for col in pivoted_normalized_df.columns.values]
@@ -127,6 +124,10 @@ def read_nacc_data(filename: str, normalize: bool = True,
             x_dict[feature][time] = df[column].to_numpy()
 
     x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
+
+    if normalize:
+        x_tensor_with_nans = ClusteringUtils.calc_z_scores(x_tensor_with_nans)
+
     return x_tensor_with_nans
 
 
@@ -198,6 +199,78 @@ def read_adni_raw_data(filename: str, normalize: bool = True,
     if normalize:
         adni_std = np.array([1.720699, 6.699345, 2.682827])
         x_tensor_with_nans = ClusteringUtils.calc_z_scores(x_tensor_with_nans, adni_std)
+
+    return x_tensor_with_nans
+
+
+def preprocess_nacc_patient(df_p, time_points_list):
+    # get first time point with Dementia
+    time_points_ad = df_p.loc[df_p.Diagnosis == "AD"]
+    if not len(time_points_ad):
+        time_points_ad = df_p.loc[df_p.Diagnosis_BL == "AD"]
+
+    first_dementia_tp = time_points_ad.iloc[0].TIME_POINT
+
+    # get offset
+    time_points_index_dict = {tp: i for i, tp in enumerate(time_points_list)}
+    offset = time_points_index_dict[first_dementia_tp]
+    if offset:
+        df_p_new = df_p.iloc[offset - 1:].copy()
+        df_p_new["TIME_POINT"] = df_p_new["TIME_POINT"].apply(
+            lambda x: time_points_list[time_points_index_dict[x] - offset])
+    else:
+        df_p_new = df_p.copy()
+    return df_p_new
+
+
+def preprocess_nacc_data(df):
+    patients_list = df.loc[(df.Diagnosis_BL == "AD") | (
+            df.Diagnosis == "AD")].NACCID.unique()  # select all patients who was at least once diagnosed as AD
+
+    df_ad = df.loc[df.NACCID.isin(patients_list)].copy()
+    df_ad['TIME_POINT'] = df_ad['NACCVNUM']
+    df_ad = df_ad.sort_values(by=["NACCID", "TIME_POINT"])
+
+    time_points_list = sorted(df_ad.TIME_POINT.unique())  # time points for AD patients
+
+    processed_patients_df_list = []
+    for patient_id in patients_list:
+        df_p = df_ad.loc[df.NACCID == patient_id]
+        df_p_processed = preprocess_nacc_patient(df_p, time_points_list)
+        processed_patients_df_list.append(df_p_processed)
+
+    df_processed = pd.concat(processed_patients_df_list)
+    return df_processed
+
+
+def read_nacc_raw_data(filename: str, normalize: bool = True,
+                       features: tuple = ("NACCMMSE", "CDRSUM", "NACCFAQ")) -> np.ndarray:
+    features_list = list(features)
+
+    df = pd.read_csv(filename).loc[:, ("NACCID", "NACCVNUM", "Diagnosis_BL", "Diagnosis", "NACCMMSE", "CDRSUM", "NACCFAQ")]
+    df_ad_filtered = preprocess_nacc_data(df).loc[:, ("NACCID", "TIME_POINT", "NACCMMSE", "CDRSUM", "NACCFAQ")]
+    # time_points = tuple([str(t) for t in sorted(df_ad_filtered.TIME_POINT.unique())])
+    time_points = ("1", "2", "3", "4", "5", "14")
+
+    df_ad_filtered_normalized_pivoted = df_ad_filtered.pivot(index="NACCID", columns="TIME_POINT", values=features_list)
+    df_ad_filtered_normalized_pivoted.columns = [f"{col[0]}_{col[1]}" for col in
+                                                 df_ad_filtered_normalized_pivoted.columns.values]
+    df = df_ad_filtered_normalized_pivoted
+
+    x_dict = OrderedDict.fromkeys(features)
+    for feature in features:
+        x_dict[feature] = OrderedDict.fromkeys(time_points)
+
+    feature_columns = [column for column in df if "_" in column]
+    for column in feature_columns:
+        feature, time = column.split("_", 1)
+        if feature in features and time in time_points:
+            x_dict[feature][time] = df[column].to_numpy()
+
+    x_tensor_with_nans = __map_xdict_to_xtensor(x_dict)
+
+    if normalize:
+        x_tensor_with_nans = ClusteringUtils.calc_z_scores(x_tensor_with_nans)
 
     return x_tensor_with_nans
 
