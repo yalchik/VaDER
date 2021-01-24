@@ -109,7 +109,7 @@ class ClusteringUtils:
     def calc_z_scores(X_train: ndarray, std_per_feature: ndarray = None) -> ndarray:
         Xnorm = np.zeros(X_train.shape)
         if std_per_feature is None:
-            std_per_feature = X_train.reshape(-1, 3).std(axis=0)
+            std_per_feature = pd.DataFrame(X_train.reshape(-1, 3)).std().to_numpy()
         n_features = X_train.shape[2]
         for i in range(n_features):
             Xnorm[:, :, i] = (X_train[:, :, i] - np.vstack(X_train[:, 0, i])) / std_per_feature[i]
