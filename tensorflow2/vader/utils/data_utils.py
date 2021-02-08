@@ -250,7 +250,7 @@ def read_nacc_raw_data(filename: str, normalize: bool = True,
     df = pd.read_csv(filename).loc[:, ("NACCID", "NACCVNUM", "Diagnosis_BL", "Diagnosis", "NACCMMSE", "CDRSUM", "NACCFAQ")]
     df_ad_filtered = preprocess_nacc_data(df).loc[:, ("NACCID", "TIME_POINT", "NACCMMSE", "CDRSUM", "NACCFAQ")]
     # time_points = tuple([str(t) for t in sorted(df_ad_filtered.TIME_POINT.unique())])
-    time_points = ("1", "2", "3", "4", "5", "14")
+    time_points = ("1", "2", "3", "4", "5")
 
     df_ad_filtered_normalized_pivoted = df_ad_filtered.pivot(index="NACCID", columns="TIME_POINT", values=features_list)
     df_ad_filtered_normalized_pivoted.columns = [f"{col[0]}_{col[1]}" for col in
