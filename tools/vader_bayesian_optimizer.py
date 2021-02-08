@@ -35,14 +35,15 @@ class VADERBayesianOptimizer:
 
     def run(self, input_data: np.ndarray, input_weights: np.ndarray) -> None:
         results = {}
-        study = optuna.create_study(
-            study_name='VaDER',
-            # storage='sqlite:///hypopt/optuna__coxtest_01.db',
-            direction="maximize",
-            load_if_exists=True
-        )
 
         for k in range(2, 7):
+            study = optuna.create_study(
+                study_name=f'VaDER_k{k}',
+                # storage='sqlite:///hypopt/optuna__coxtest_01.db',
+                direction="maximize",
+                load_if_exists=True
+            )
+
             def objective(trial):
                 learning_rate = trial.suggest_loguniform("learning_rate", 1e-4, 1)
                 batch_size = trial.suggest_int("batch_size", 8, 128)
@@ -63,7 +64,7 @@ class VADERBayesianOptimizer:
                     params_dict=params_dict,
                     seed=None,
                     n_consensus=1,
-                    n_epoch=20,
+                    n_epoch=50,
                     n_splits=2,
                     n_perm=10
                 )
