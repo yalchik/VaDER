@@ -99,7 +99,7 @@ class VADERBayesianOptimizer:
 
 
 if __name__ == "__main__":
-    x_tensor_with_nans = read_adni_norm_data("d:\\workspaces\\vader_data\\ADNI\\Xnorm.csv")
+    x_tensor_with_nans = read_adni_norm_data("/home/iyalchyk/my_repo/data/Xnorm.csv")
     W = generate_wtensor_from_xtensor(x_tensor_with_nans)
     X = np.nan_to_num(x_tensor_with_nans)
     VADERBayesianOptimizer().run(X, W)
