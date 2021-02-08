@@ -11,7 +11,8 @@ from vader.utils.clustering_utils import ClusteringUtils
 
 
 def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_list: List[str],
-                  time_points_list: Union[List[int], tuple], cmap_name: str = "Set1") -> matplotlib.figure.Figure:
+                  time_points_list: Union[List[int], tuple], cmap_name: str = "Set1",
+                  x_label: str = "month") -> matplotlib.figure.Figure:
     """
     Generates normalized cluster mean trajectories relative to baseline (x-axis in months).
     Reference: Figure 4 from the paper.
@@ -43,7 +44,7 @@ def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_l
             axs[plt_index].plot(time_points_list, mu - sigma, color=colors_list[j], linestyle="--", linewidth=1)
             axs[plt_index].plot(time_points_list, mu + sigma, color=colors_list[j], linestyle="--", linewidth=1)
         axs[plt_index].set_title(features_list[i])
-        axs[plt_index].set_xlabel("month")
+        axs[plt_index].set_xlabel(x_label)
         axs[plt_index].set_ylabel("z−score relative to baseline")
 
     # create legend
