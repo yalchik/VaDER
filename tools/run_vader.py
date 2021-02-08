@@ -74,10 +74,12 @@ if __name__ == "__main__":
     if args.input_data_type == "ADNI":
         features = ("CDRSB", "MMSE", "ADAS11"),
         time_points = ("0", "6", "12", "24", "36")
+        x_label = "month"
         x_tensor = read_adni_norm_data(args.input_data_file)
     elif args.input_data_type == "NACC":
         features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
         time_points = tuple(range(15))
+        x_label = "visit"
         x_tensor = read_nacc_data(args.input_data_file)
     elif args.input_data_type == "PPMI":
         print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
@@ -85,10 +87,12 @@ if __name__ == "__main__":
     elif args.input_data_type == "ADNI_RAW":
         features = ("CDRSB", "MMSE", "ADAS11")
         time_points = ("0", "6", "12", "24", "36")
+        x_label = "month"
         x_tensor = read_adni_raw_data(args.input_data_file)
     elif args.input_data_type == "NACC_RAW":
         features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
-        time_points = tuple(range(15))
+        time_points = ("1", "2", "3", "4", "5")
+        x_label = "visit"
         x_tensor = read_nacc_raw_data(args.input_data_file)
     elif args.input_data_type == "custom":
         x_tensor = read_custom_data(args.input_data_file)
@@ -105,6 +109,15 @@ if __name__ == "__main__":
     input_weights = w_tensor
     n_hidden = [int(layer_size) for layer_size in args.n_hidden]
 
+    report_file = f"{args.input_data_type}_k{str(args.k)}" \
+                  f"_n_hidden{'_'.join(args.n_hidden)}" \
+                  f"_learning_rate{str(args.learning_rate)}" \
+                  f"_batch_size{str(args.batch_size)}" \
+                  f"_n_epoch{str(args.n_epoch)}" \
+                  f"_n_consensus{str(args.n_consensus)}"
+    report_file_path = os.path.join(args.output_path, report_file + ".txt")
+    plot_file_path = os.path.join(args.output_path, report_file + ".pdf")
+
     if args.n_consensus and args.n_consensus > 1:
         y_pred_repeats = []
         effective_k_repeats = []
@@ -120,6 +133,9 @@ if __name__ == "__main__":
             vader.fit(n_epoch=args.n_epoch, verbose=False)
             # noinspection PyTypeChecker
             clustering = vader.cluster(input_data, input_weights)
+            with open(report_file_path, "a+") as f:
+                f.write(f"Proportion: {Counter(clustering)}\n"
+                        f"{list(clustering)}\n\n")
             effective_k = len(Counter(clustering))
             y_pred_repeats.append(clustering)
             effective_k_repeats.append(effective_k)
@@ -143,22 +159,13 @@ if __name__ == "__main__":
         reconstruction_loss, latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
     total_loss = reconstruction_loss + args.alpha * latent_loss
 
-    report_file = f"{args.input_data_type}_k{str(args.k)}" \
-                  f"_n_hidden{'_'.join(args.n_hidden)}" \
-                  f"_learning_rate{str(args.learning_rate)}" \
-                  f"_batch_size{str(args.batch_size)}" \
-                  f"_n_epoch{str(args.n_epoch)}" \
-                  f"_n_consensus{str(args.n_consensus)}"
-    report_file_path = os.path.join(args.output_path, report_file + ".txt")
-    plot_file_path = os.path.join(args.output_path, report_file + ".pdf")
-
     with open(report_file_path, "a+") as f:
         f.write(f"Proportion: {Counter(clustering)}\n"
                 f"Reconstruction loss: {reconstruction_loss}\n"
                 f"Lat loss: {latent_loss}\n"
                 f"Total loss: {total_loss}\n"
-                f"{clustering}\n\n")
+                f"{list(clustering)}\n\n")
 
     if features and time_points:
-        _ = plot_z_scores(x_tensor, clustering, list(features), time_points)
+        _ = plot_z_scores(x_tensor, clustering, list(features), time_points, x_label=x_label)
         plt.savefig(plot_file_path)
