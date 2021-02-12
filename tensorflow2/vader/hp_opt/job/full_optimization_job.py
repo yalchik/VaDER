@@ -55,9 +55,10 @@ class FullOptimizationJob(AbstractOptimizationJob):
         adj_rand_index = ClusteringUtils.calc_adj_rand_index(y_pred, y_true)
         rand_index = ClusteringUtils.calc_rand_index(y_pred, y_true)
         prediction_strength = ClusteringUtils.calc_prediction_strength(y_pred, y_true)
-        permuted_clustering_evaluation_metrics = ClusteringUtils.calc_permuted_clustering_evaluation_metrics(
+        random_clustering = ClusteringUtils.calc_permuted_clustering_evaluation_metrics(
             y_pred, y_true, self.n_perm
         )
+        prediction_strength_diff = prediction_strength - random_clustering["prediction_strength"]
         return {
             "train_reconstruction_loss": train_reconstruction_loss,
             "train_latent_loss": train_latent_loss,
@@ -67,11 +68,12 @@ class FullOptimizationJob(AbstractOptimizationJob):
             "test_total_loss": test_total_loss,
             "effective_k": effective_k,
             "rand_index": rand_index,
-            "rand_index_null": permuted_clustering_evaluation_metrics["rand_index"],
+            "rand_index_null": random_clustering["rand_index"],
             "adj_rand_index": adj_rand_index,
-            "adj_rand_index_null": permuted_clustering_evaluation_metrics["adj_rand_index"],
+            "adj_rand_index_null": random_clustering["adj_rand_index"],
             "prediction_strength": prediction_strength,
-            "prediction_strength_null": permuted_clustering_evaluation_metrics["prediction_strength"],
+            "prediction_strength_null": random_clustering["prediction_strength"],
+            "prediction_strength_diff": prediction_strength_diff
         }
 
     def _consensus_clustering(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],

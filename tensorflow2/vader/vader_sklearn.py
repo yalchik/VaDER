@@ -17,12 +17,12 @@ class VaDERSklearnClustering(BaseEstimator, ClusterMixin):
         self.save_path = save_path
         self.k = k
 
-    def fit(self, X):
+    def fit(self, X, y=None, fit_params=None):
         vader = VADER(X_train=X, save_path=self.save_path, n_hidden=self.n_hidden, k=self.k,
                       learning_rate=self.learning_rate, output_activation=self.output_activation,
                       recurrent=self.recurrent, batch_size=self.batch_size)
 
-        vader.pre_fit(n_epoch=self.n_epoch, verbose=self.verbose)
+        vader.pre_fit(n_epoch=10, verbose=self.verbose)
         vader.fit(n_epoch=self.n_epoch, verbose=self.verbose)
         self.vader = vader
         return vader

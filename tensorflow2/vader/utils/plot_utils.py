@@ -19,6 +19,7 @@ def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_l
 
     See: https://github.com/yalchik/VaDER/issues/8
     """
+    features_list = ['CDRSB', 'MMSE', 'ADAS11']
     clustering_dict = ClusteringUtils.clustering_to_dict(clustering_list)
     n_features = len(features_list)
     n_clusters = len(clustering_dict)
