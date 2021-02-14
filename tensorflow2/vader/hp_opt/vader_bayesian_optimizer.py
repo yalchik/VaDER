@@ -53,8 +53,16 @@ class VADERBayesianOptimizer:
             os.makedirs(self.failed_jobs_dir, exist_ok=True)
 
         # Configure param grid
-        self.k_list = [2, 3, 4, 5, 6]
         self.hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
+        self.params_limits = {
+            "k": [2, 3, 4, 5, 6],
+            "alpha": [0.0, 1.0],
+            "learning_rate": [1e-4, 1e-2],
+            "batch_size": [8, 128],
+            "n_hidden_layers": [1, 2],
+            "hidden_layer_size": [1, 128]
+        }
+        self.k_list = self.params_limits["k"]
 
         # Configure output files names
         self.run_id = f"n_trials{n_trials}_n_repeats{n_repeats}_n_splits{n_splits}_" \
@@ -102,22 +110,28 @@ class VADERBayesianOptimizer:
         result = {
             "k": k,
             "best_params": study.best_params,
-            "best_value": study.best_value
+            "best_value": study.best_value,
+            "best_trial": study.best_trial.number
         }
         self.logger.info(f"For k={k} best_params={study.best_params} with score={study.best_value}")
         return pd.Series(result)
 
-    def __gen_repeats_files_from_trials_files(self):
+    def __gen_repeats_files_from_trials_files(self, cv_results_df):
         df_trials_list = []
-        for entry in os.scandir(self.output_trials_dir):
-            if entry.is_file() and entry.path.endswith(".csv"):
-                df = pd.read_csv(entry.path)
-                df_trials_list.append(df)
+        for i, row in cv_results_df.iterrows():
+            k = row["k"]
+            trial = row["best_trial"]
+            trial_csv_file = f"k{k}_trial{trial}.csv"
+            trial_df = pd.read_csv(os.path.join(self.output_trials_dir, trial_csv_file))
+            # Since hyperparameters are different for different 'k's - we need to mask them to support join
+            for hp in self.hyperparameters:
+                trial_df[hp] = "~"
+            df_trials_list.append(trial_df)
         df = pd.concat(df_trials_list, ignore_index=True)
 
         for i in range(self.n_repeats):
-            ii = list(range(i, df.shape[0], self.n_repeats))
-            df.iloc[ii].to_csv(os.path.join(self.output_repeats_dir, f"repeat_{i}.csv"), index=False)
+            one_repeat_index = list(range(i, df.shape[0], self.n_repeats))
+            df.iloc[one_repeat_index].to_csv(os.path.join(self.output_repeats_dir, f"repeat_{i}.csv"), index=False)
 
     def run(self, input_data: np.ndarray, input_weights: np.ndarray) -> None:
         self.logger.info(f"Optimization has started. Data shape: {input_data.shape}")
@@ -128,10 +142,9 @@ class VADERBayesianOptimizer:
         cv_results_df = self.run_parallel_jobs(jobs_params_list)
         cv_results_df.to_csv(self.output_best_scores_file, index=False)
 
-        self.__gen_repeats_files_from_trials_files()
+        self.__gen_repeats_files_from_trials_files(cv_results_df)
         aggregator = CVResultsAggregator.from_files(self.output_repeats_dir, self.hyperparameters)
         aggregator.plot_to_pdf(self.output_pdf_report_file)
-        aggregator.save_to_csv(self.output_diffs_file)
 
         self.logger.info(f"Optimization has finished. See: {self.output_best_scores_file}")
 
@@ -165,19 +178,47 @@ class VADERBayesianOptimizer:
 
     def objective(self, trial, k, input_data, input_weights):
         trial_id = f"k{k}_trial{trial.number}"
-        learning_rate = trial.suggest_loguniform("learning_rate", 1e-4, 1e-2)
-        batch_size = trial.suggest_int("batch_size", 8, 128)
-        n_hidden_1 = trial.suggest_int("n_hidden_1", 8, 128)
-        n_hidden_2 = trial.suggest_int("n_hidden_2", 1, n_hidden_1)
-        n_hidden = (n_hidden_1, n_hidden_2)
+        # learning_rate = trial.suggest_loguniform("learning_rate", 1e-4, 1e-2)
+        alpha = trial.suggest_float(
+            "alpha",
+            self.params_limits["alpha"][0],
+            self.params_limits["alpha"][1]
+        )
+        learning_rate = trial.suggest_float(
+            "learning_rate",
+            self.params_limits["learning_rate"][0],
+            self.params_limits["learning_rate"][1],
+            log=True
+        )
+        batch_size = trial.suggest_int(
+            "batch_size",
+            self.params_limits["batch_size"][0],
+            self.params_limits["batch_size"][1]
+        )
+        n_hidden_layers = trial.suggest_int(
+            "n_hidden_layers",
+            self.params_limits["n_hidden_layers"][0],
+            self.params_limits["n_hidden_layers"][1]
+        )
+        n_hidden = []
+        for i in range(1, n_hidden_layers + 1):
+            max_size = max(self.params_limits["hidden_layer_size"][1], n_hidden[-1]) if n_hidden else self.params_limits["hidden_layer_size"][1]
+            n_hidden_i = trial.suggest_int(
+                f"n_hidden_{i}",
+                self.params_limits["hidden_layer_size"][0],
+                max_size
+            )
+            n_hidden.append(n_hidden_i)
 
         params_dict = {
             "k": k,
             "n_hidden": n_hidden,
             "learning_rate": learning_rate,
             "batch_size": batch_size,
-            "alpha": 1
+            "alpha": alpha
         }
+        self.logger.info(f"New trial {trial_id} with params={params_dict}")
+
         repeats_results = []
         for i in range(self.n_repeats):
             seed = int(str(self.seed) + str(k) + str(trial.number) + str(i)) if self.seed else None
@@ -195,13 +236,13 @@ if __name__ == "__main__":
     X = np.nan_to_num(x_tensor_with_nans)
     optimizer = VADERBayesianOptimizer(
         n_repeats=5,
-        n_proc=6,
-        n_trials=5,
+        n_proc=1,
+        n_trials=10,
         n_consensus=1,
-        n_epoch=20,
+        n_epoch=10,
         n_splits=2,
         n_perm=10,
         seed=None,
-        output_folder="d:\\workspaces\\vader_results\\Bayesian_test"
+        output_folder="d:\\workspaces\\vader_results\\Bayesian_test4"
     )
     optimizer.run(X, W)

@@ -39,10 +39,12 @@ class CVResultsAggregator:
     def save_to_csv(self, output_file: str) -> None:
         self.perf_df.to_csv(output_file, index=False)
 
-    def __plot_one(self, index: int) -> matplotlib.figure.Figure:
+    def __plot_one(self, index: int, title: str = None) -> matplotlib.figure.Figure:
         rows_set = self.repetitions_matrix[index]
         fig, axs = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle(f"#{index}: {self.df_params.loc[index].to_dict()}")
+        if not title:
+            title = f"#{index}: {self.df_params.loc[index].to_dict()}"
+        fig.suptitle(title)
         self.plot_1_1(axs[0, 0], self.df_pred_str, self.df_pred_str_null, rows_set)
         self.plot_1_2(axs[0, 1], self.diff_df, index)
         self.plot_2_1(axs[1, 0], self.pval_df, index)
@@ -193,3 +195,36 @@ class CVResultsAggregator:
     @staticmethod
     def check_limit(number):
         return number is not None and not math.isnan(number) and not math.isinf(number)
+
+
+# if __name__ == "__main__":
+#     output_repeats_dir = "d:\\workspaces\\vader_results\\Bayesian_test\\csv_repeats"
+#     hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
+#     aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
+#
+#     output_pdf_report_file = "d:\\workspaces\\vader_results\\Bayesian_test\\report.pdf"
+#     output_diffs_file = "d:\\workspaces\\vader_results\\Bayesian_test\\diff.csv"
+#     aggregator.plot_to_pdf(output_pdf_report_file)
+#     aggregator.save_to_csv(output_diffs_file)
+
+if __name__ == "__main__":
+    output_dir = "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077"
+    output_repeats_dir = f"{output_dir}\\csv_repeats_masked"
+    hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
+    aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
+
+    output_pdf_report_file = f"{output_dir}\\new_report.pdf"
+    output_diffs_file = f"{output_dir}\\new_diff.csv"
+
+    cv_results_df = pd.read_csv(
+        "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077\\best_scores_n_trials100_n_repeats10_n_splits2_n_consensus1_n_epoch50_n_perm1000_seedNone.csv")
+
+    aggregator.plot_to_pdf(output_pdf_report_file, cv_results_df)
+    # aggregator.save_to_csv(output_diffs_file)
+
+# if __name__ == "__main__":
+#     output_dir = "d:\\workspaces\\@Git\\ADNI_optimal_modelr"
+#     output_repeats_dir = f"{output_dir}\\csv"
+#     hyperparameters = ["n_layer", "alpha", "learning_rate", "batch_size", "n_hidden1", "n_hidden2"]
+#     aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
+
