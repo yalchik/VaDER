@@ -82,7 +82,11 @@ class VADERBayesianOptimizer:
         return jobs_params_list
 
     def run_parallel_jobs(self, jobs_params_list: List[tuple]) -> pd.DataFrame:
-        with mp.Pool(self.n_proc) as pool:
+        if self.n_proc > len(jobs_params_list):
+            n_proc = len(jobs_params_list)
+        else:
+            n_proc = self.n_proc
+        with mp.Pool(n_proc) as pool:
             cv_results_list = pool.map(self.run_cv_full_job, jobs_params_list)
 
         cv_results_df = pd.DataFrame(cv_results_list)
