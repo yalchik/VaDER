@@ -49,6 +49,8 @@ if __name__ == "__main__":
     parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "NACC_RAW", "custom"], help="data type",
                         required=True)
     parser.add_argument("--n_epoch", type=int, default=20, help="number of training epochs")
+    parser.add_argument("--early_stopping_ratio", type=float, help="early stopping ratio")
+    parser.add_argument("--early_stopping_batch_size", type=int, default=5, help="early stopping batch size")
     parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering")
     parser.add_argument("--k", type=int, help="number of repeats", required=True)
     parser.add_argument("--n_hidden", nargs='+', help="hidden layers", required=True)
@@ -71,7 +73,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path, exist_ok=True)
 
-    x_tensor, features, time_points = None, None, None
+    x_tensor, features, time_points, x_label = None, None, None, None
     if args.input_data_type == "ADNI":
         features = ("CDRSB", "MMSE", "ADAS11"),
         time_points = ("0", "6", "12", "24", "36")
@@ -133,7 +135,8 @@ if __name__ == "__main__":
                           learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
                           seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
             vader.pre_fit(n_epoch=10, verbose=False)
-            vader.fit(n_epoch=args.n_epoch, verbose=False)
+            vader.fit(n_epoch=args.n_epoch, verbose=False, early_stopping_ratio=args.early_stopping_ratio,
+                      early_stopping_batch_size=args.early_stopping_batch_size)
             fig = plot_loss_history(vader, model_name=f"Model #{j}")
             loss_history_pdf.savefig(fig)
             # noinspection PyTypeChecker
@@ -159,7 +162,8 @@ if __name__ == "__main__":
                       learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
                       seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
         vader.pre_fit(n_epoch=10, verbose=False)
-        vader.fit(n_epoch=args.n_epoch, verbose=False)
+        vader.fit(n_epoch=args.n_epoch, verbose=False, early_stopping_ratio=args.early_stopping_ratio,
+                  early_stopping_batch_size=args.early_stopping_batch_size)
         fig = plot_loss_history(vader)
         fig.savefig(loss_history_file_path)
         # noinspection PyTypeChecker
