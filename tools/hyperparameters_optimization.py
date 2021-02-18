@@ -66,6 +66,8 @@ if __name__ == "__main__":
     parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV, default - full grid")
     parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering, default 1")
     parser.add_argument("--n_epoch", type=int, default=10, help="number of epochs for VaDER training, default 10")
+    parser.add_argument("--early_stopping_ratio", type=float, help="early stopping ratio")
+    parser.add_argument("--early_stopping_batch_size", type=int, default=5, help="early stopping batch size")
     parser.add_argument("--n_splits", type=int, default=2, help="number of splits in KFold per optimization job, default 2")
     parser.add_argument("--n_perm", type=int, default=100, help="number of permutations for prediction strength, default 100")
     parser.add_argument("--type", type=str, choices=["gridsearch", "bayesian"], default="gridsearch")
@@ -119,6 +121,8 @@ if __name__ == "__main__":
             n_splits=args.n_splits,
             n_perm=args.n_perm,
             seed=args.input_seed,
+            early_stopping_ratio=args.early_stopping_ratio,
+            early_stopping_batch_size=args.early_stopping_batch_size,
             output_folder=args.output_folder
         )
     elif args.type == "bayesian":
@@ -131,6 +135,8 @@ if __name__ == "__main__":
             n_splits=args.n_splits,
             n_perm=args.n_perm,
             seed=args.input_seed,
+            early_stopping_ratio=args.early_stopping_ratio,
+            early_stopping_batch_size=args.early_stopping_batch_size,
             output_folder=args.output_folder
         )
     else:

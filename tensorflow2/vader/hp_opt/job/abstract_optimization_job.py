@@ -12,7 +12,8 @@ class AbstractOptimizationJob(ABC):
     """Holds cross-validation logic."""
 
     def __init__(self, data: ndarray, weights: ndarray, params_dict: common.ParamsDictType, seed: int,
-                 n_consensus: int, n_epoch: int, n_splits: int, n_perm: int):
+                 n_consensus: int, n_epoch: int, n_splits: int, n_perm: int, early_stopping_ratio: float = None,
+                 early_stopping_batch_size: int = 5):
         self.data = data
         self.weights = weights
         self.params_dict = params_dict
@@ -21,6 +22,8 @@ class AbstractOptimizationJob(ABC):
         self.n_epoch = n_epoch
         self.n_splits = n_splits
         self.n_perm = n_perm
+        self.early_stopping_ratio = early_stopping_ratio
+        self.early_stopping_batch_size = early_stopping_batch_size
         self.cv_id = uuid.uuid4()
         self.logger = common.log_manager.get_logger(__name__)
         self.logger.info(f"Job is initialized with id={self.cv_id}, seed={seed}, n_consensus={n_consensus},"

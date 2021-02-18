@@ -149,5 +149,6 @@ class FullOptimizationJob(AbstractOptimizationJob):
                       learning_rate=learning_rate, recurrent=True, batch_size=batch_size, alpha=alpha)
 
         vader.pre_fit(n_epoch=10, verbose=False)
-        vader.fit(n_epoch=self.n_epoch, verbose=False)
+        vader.fit(n_epoch=self.n_epoch, verbose=False, early_stopping_ratio=self.early_stopping_ratio,
+                  early_stopping_batch_size=self.early_stopping_batch_size)
         return vader

@@ -30,7 +30,7 @@ class VADERBayesianOptimizer:
 
     def __init__(self, n_repeats: int = 10, n_proc: int = 1, n_trials: int = 100, n_consensus: int = 1,
                  n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100, seed: Optional[int] = None,
-                 output_folder: str = "."):
+                 early_stopping_ratio: float = None, early_stopping_batch_size: int = 5, output_folder: str = "."):
         self.n_trials = n_trials
         self.n_proc = n_proc
         self.n_repeats = n_repeats
@@ -39,6 +39,8 @@ class VADERBayesianOptimizer:
         self.n_splits = n_splits
         self.n_perm = n_perm
         self.seed = seed
+        self.early_stopping_ratio = early_stopping_ratio
+        self.early_stopping_batch_size = early_stopping_batch_size
 
         # Configure output folders
         self.output_folder = output_folder
@@ -164,6 +166,8 @@ class VADERBayesianOptimizer:
             seed=seed,
             n_consensus=self.n_consensus,
             n_epoch=self.n_epoch,
+            early_stopping_ratio=self.early_stopping_ratio,
+            early_stopping_batch_size=self.early_stopping_batch_size,
             n_splits=self.n_splits,
             n_perm=self.n_perm
         )

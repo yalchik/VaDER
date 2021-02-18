@@ -15,7 +15,8 @@ class VADERHyperparametersOptimizer:
 
     def __init__(self, param_grid_factory: Optional[ParamGridFactory] = None, n_repeats: int = 10, n_proc: int = 1,
                  n_sample: int = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
-                 seed: Optional[int] = None, output_folder: str = "."):
+                 seed: Optional[int] = None, early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
+                 output_folder: str = "."):
         """
         Configure output folders, output file names, param grid and logging.
 
@@ -91,6 +92,8 @@ class VADERHyperparametersOptimizer:
         self.n_splits = n_splits
         self.n_perm = n_perm
         self.seed = seed
+        self.early_stopping_ratio = early_stopping_ratio
+        self.early_stopping_batch_size = early_stopping_batch_size
 
         # Configure output folders
         self.output_folder = output_folder
@@ -212,10 +215,10 @@ class VADERHyperparametersOptimizer:
         for i in range(self.n_repeats):
             for j, params_dict in enumerate(self.param_grid):
                 seed = int(str(self.seed) + str(j) + str(i)) if self.seed else None
-                jobs_params_list.append(
-                    (input_data, input_weights, params_dict, seed,
-                     self.n_consensus, self.n_epoch, self.n_splits, self.n_perm)
-                )
+                jobs_params_list.append((
+                    input_data, input_weights, params_dict, seed, self.n_consensus, self.n_epoch, self.n_splits,
+                    self.n_perm, self.early_stopping_ratio, self.early_stopping_batch_size
+                ))
         return jobs_params_list
 
     def __save_all_repeats(self, cv_results_df: pd.DataFrame) -> None:
