@@ -231,7 +231,7 @@ class VADER:
             tf.keras.models.save_model(self.model, self.save_path, save_format="tf")
 
     def fit(self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None, early_stopping_ratio=None,
-            early_stopping_batch_size=None):
+            early_stopping_batch_size=5):
         '''
             Train a VADER object.
 
