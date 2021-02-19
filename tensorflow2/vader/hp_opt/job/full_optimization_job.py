@@ -1,3 +1,4 @@
+import os
 import numpy as np
 from numpy import ndarray
 from collections import Counter
@@ -5,6 +6,7 @@ from typing import Dict, Union, Optional
 from vader import VADER
 from vader.hp_opt.job.abstract_optimization_job import AbstractOptimizationJob
 from vader.utils.clustering_utils import ClusteringUtils
+from vader.utils.plot_utils import plot_cv_loss_history
 
 
 class FullOptimizationJob(AbstractOptimizationJob):
@@ -29,12 +31,13 @@ class FullOptimizationJob(AbstractOptimizationJob):
     """
 
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
-                      W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:
+                      W_val: Optional[ndarray], split_id: int = None) -> Dict[str, Union[int, float]]:
         if self.n_consensus and self.n_consensus > 1:
             clustering_func = self._consensus_clustering
         else:
             clustering_func = self._single_clustering
-        (y_pred,
+        (vader_train,
+         y_pred,
          effective_k,
          train_reconstruction_loss,
          train_latent_loss,
@@ -50,6 +53,12 @@ class FullOptimizationJob(AbstractOptimizationJob):
         vader = self._fit_vader(X_val, W_val)
         # noinspection PyTypeChecker
         y_true = vader.cluster(X_val, W_val)
+
+        # report cross-validation performance
+        if self.reports_dir:
+            fig = plot_cv_loss_history(vader_train, vader, self.cv_id)
+            loss_history_file_path = os.path.join(self.reports_dir, f"{self.cv_id}.pdf")
+            fig.savefig(loss_history_file_path)
 
         # evaluate clustering
         adj_rand_index = ClusteringUtils.calc_adj_rand_index(y_pred, y_true)
@@ -87,6 +96,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
         for i in range(self.n_consensus):
             self.seed = int(str(self.seed) + str(i)) if self.seed else None
             (
+                _,
                 y_pred,
                 effective_k,
                 train_reconstruction_loss,
@@ -107,6 +117,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
         test_reconstruction_loss = np.mean(test_reconstruction_loss_repeats)
         test_latent_loss = np.mean(test_latent_loss_repeats)
         return (
+            None,
             y_pred,
             effective_k,
             train_reconstruction_loss,
@@ -129,6 +140,7 @@ class FullOptimizationJob(AbstractOptimizationJob):
         # noinspection PyTypeChecker
         y_pred = vader.cluster(X_val, W_val)
         return (
+            vader,
             y_pred,
             effective_k,
             train_reconstruction_loss,

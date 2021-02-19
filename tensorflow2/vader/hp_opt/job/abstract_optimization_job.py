@@ -13,7 +13,7 @@ class AbstractOptimizationJob(ABC):
 
     def __init__(self, data: ndarray, weights: ndarray, params_dict: common.ParamsDictType, seed: int,
                  n_consensus: int, n_epoch: int, n_splits: int, n_perm: int, early_stopping_ratio: float = None,
-                 early_stopping_batch_size: int = 5):
+                 early_stopping_batch_size: int = 5, reports_dir: str = None):
         self.data = data
         self.weights = weights
         self.params_dict = params_dict
@@ -24,6 +24,7 @@ class AbstractOptimizationJob(ABC):
         self.n_perm = n_perm
         self.early_stopping_ratio = early_stopping_ratio
         self.early_stopping_batch_size = early_stopping_batch_size
+        self.reports_dir = reports_dir
         self.cv_id = uuid.uuid4()
         self.logger = common.log_manager.get_logger(__name__)
         self.logger.info(f"Job is initialized with id={self.cv_id}, seed={seed}, n_consensus={n_consensus},"
@@ -31,7 +32,7 @@ class AbstractOptimizationJob(ABC):
 
     @abstractmethod
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
-                      W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:
+                      W_val: Optional[ndarray], split_id: int = None) -> Dict[str, Union[int, float]]:
         """
         Processes a single data fold when input data has been already split into a train and a validation subsets.
 
@@ -82,14 +83,16 @@ class AbstractOptimizationJob(ABC):
         # self.logger.debug(f"=> optimization_job started id={self.cv_id}")
         cv_folds_results_list = []
         data_split = KFold(n_splits=self.n_splits, shuffle=True, random_state=self.seed).split(self.data)
+        split_id = 0
         for train_index, val_index in data_split:
             X_train, X_val = self.data[train_index], self.data[val_index]
             if self.weights is not None:
                 W_train, W_val = self.weights[train_index], self.weights[val_index]
             else:
                 W_train, W_val = None, None
-            cv_fold_result = self._cv_fold_step(X_train, X_val, W_train, W_val)
+            cv_fold_result = self._cv_fold_step(X_train, X_val, W_train, W_val, split_id)
             cv_folds_results_list.append(cv_fold_result)
+            split_id += 1
 
         cv_folds_results_df = pd.DataFrame(cv_folds_results_list)
         cv_mean_results_series = cv_folds_results_df.mean()

@@ -11,7 +11,7 @@ class PreFitOptimizationJob(AbstractOptimizationJob):
     """
 
     def _cv_fold_step(self, X_train: ndarray, X_val: ndarray, W_train: Optional[ndarray],
-                      W_val: Optional[ndarray]) -> Dict[str, Union[int, float]]:
+                      W_val: Optional[ndarray], split_id: int = None) -> Dict[str, Union[int, float]]:
         vader = self._fit_vader(X_train, W_train)
         # noinspection PyTypeChecker
         test_loss_dict = vader.get_loss(X_val)

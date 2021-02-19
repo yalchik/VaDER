@@ -213,13 +213,13 @@ if __name__ == "__main__":
     hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
     aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
 
-    output_pdf_report_file = f"{output_dir}\\new_report.pdf"
-    output_diffs_file = f"{output_dir}\\new_diff.csv"
-
-    cv_results_df = pd.read_csv(
-        "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077\\best_scores_n_trials100_n_repeats10_n_splits2_n_consensus1_n_epoch50_n_perm1000_seedNone.csv")
-
-    aggregator.plot_to_pdf(output_pdf_report_file, cv_results_df)
+    # output_pdf_report_file = f"{output_dir}\\new_report.pdf"
+    # output_diffs_file = f"{output_dir}\\new_diff.csv"
+    #
+    # cv_results_df = pd.read_csv(
+    #     "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077\\best_scores_n_trials100_n_repeats10_n_splits2_n_consensus1_n_epoch50_n_perm1000_seedNone.csv")
+    #
+    # aggregator.plot_to_pdf(output_pdf_report_file, cv_results_df)
     # aggregator.save_to_csv(output_diffs_file)
 
 # if __name__ == "__main__":

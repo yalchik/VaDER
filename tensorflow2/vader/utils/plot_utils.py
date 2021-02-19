@@ -72,3 +72,17 @@ def plot_loss_history(vader: VADER, model_name: str = None) -> matplotlib.figure
     ax.set_title('Loss history')
     ax.legend()
     return fig
+
+
+def plot_cv_loss_history(vader_train: VADER, vader_val: VADER, model_name: str = None) -> matplotlib.figure.Figure:
+    epochs = list(range(max(len(vader_train.loss), len(vader_val.loss))))
+    fig, ax = plt.subplots()
+    if model_name:
+        fig.suptitle(model_name)
+    ax.plot(epochs, vader_train.loss, label="train loss")
+    ax.plot(epochs, vader_val.loss, label="validation loss")
+    ax.set_xlabel('epoch')
+    ax.set_ylabel('loss')
+    ax.set_title('CV loss history')
+    ax.legend()
+    return fig

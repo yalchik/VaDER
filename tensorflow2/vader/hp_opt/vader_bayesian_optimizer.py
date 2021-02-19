@@ -23,6 +23,8 @@ from vader.hp_opt.job.abstract_optimization_job import AbstractOptimizationJob
 from vader.utils.clustering_utils import ClusteringUtils
 from vader.utils.data_utils import generate_x_w_y, read_adni_norm_data, generate_wtensor_from_xtensor
 import optuna
+from PyPDF2 import PdfFileMerger
+import shutil
 
 
 class VADERBayesianOptimizer:
@@ -30,7 +32,8 @@ class VADERBayesianOptimizer:
 
     def __init__(self, n_repeats: int = 10, n_proc: int = 1, n_trials: int = 100, n_consensus: int = 1,
                  n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100, seed: Optional[int] = None,
-                 early_stopping_ratio: float = None, early_stopping_batch_size: int = 5, output_folder: str = "."):
+                 early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
+                 enable_cv_loss_reports: bool = False, output_folder: str = "."):
         self.n_trials = n_trials
         self.n_proc = n_proc
         self.n_repeats = n_repeats
@@ -54,6 +57,11 @@ class VADERBayesianOptimizer:
         if not os.path.exists(self.failed_jobs_dir):
             os.makedirs(self.failed_jobs_dir, exist_ok=True)
 
+        self.cv_loss_reports_dir = None
+        if enable_cv_loss_reports:
+            self.cv_loss_reports_dir = os.path.join(self.output_folder, "cv_loss_reports")
+            os.makedirs(self.cv_loss_reports_dir, exist_ok=True)
+
         # Configure param grid
         self.hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
         self.params_limits = {
@@ -73,6 +81,7 @@ class VADERBayesianOptimizer:
         self.output_diffs_file = os.path.join(self.output_folder, f"diffs_{self.run_id}.csv")
         self.output_best_scores_file = os.path.join(self.output_folder, f"best_scores_{self.run_id}.csv")
         self.output_log_file = os.path.join(self.output_folder, f"{__name__}_{self.run_id}.log")
+        self.output_cv_loss_report_file = os.path.join(self.output_folder, f"cv_loss_report_{self.run_id}.pdf")
 
         # Configure logging
         # self.logger = common.log_manager.get_logger(__name__, log_file=self.output_log_file)
@@ -139,6 +148,15 @@ class VADERBayesianOptimizer:
             one_repeat_index = list(range(i, df.shape[0], self.n_repeats))
             df.iloc[one_repeat_index].to_csv(os.path.join(self.output_repeats_dir, f"repeat_{i}.csv"), index=False)
 
+    def __gen_cv_loss_report(self):
+        pdf_files = [entry.path for entry in os.scandir(self.cv_loss_reports_dir) if entry.is_file() and entry.path.endswith(".pdf")]
+        merger = PdfFileMerger()
+        for pdf in pdf_files:
+            merger.append(pdf)
+        merger.write(self.output_cv_loss_report_file)
+        merger.close()
+        shutil.rmtree(self.cv_loss_reports_dir)
+
     def run(self, input_data: np.ndarray, input_weights: np.ndarray) -> None:
         self.logger.info(f"Optimization has started. Data shape: {input_data.shape}")
 
@@ -151,6 +169,9 @@ class VADERBayesianOptimizer:
         self.__gen_repeats_files_from_trials_files(cv_results_df)
         aggregator = CVResultsAggregator.from_files(self.output_repeats_dir, self.hyperparameters)
         aggregator.plot_to_pdf(self.output_pdf_report_file)
+
+        if self.cv_loss_reports_dir:
+            self.__gen_cv_loss_report()
 
         self.logger.info(f"Optimization has finished. See: {self.output_best_scores_file}")
 
@@ -169,7 +190,8 @@ class VADERBayesianOptimizer:
             early_stopping_ratio=self.early_stopping_ratio,
             early_stopping_batch_size=self.early_stopping_batch_size,
             n_splits=self.n_splits,
-            n_perm=self.n_perm
+            n_perm=self.n_perm,
+            reports_dir=self.cv_loss_reports_dir
         )
         try:
             self.logger.info(f"Job has started with id={job.cv_id} and job_params_dict={params_dict}")

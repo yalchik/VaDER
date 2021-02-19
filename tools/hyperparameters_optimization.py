@@ -73,6 +73,7 @@ if __name__ == "__main__":
     parser.add_argument("--type", type=str, choices=["gridsearch", "bayesian"], default="gridsearch")
     parser.add_argument("--n_trials", type=int, default=100, help="number of trials (for bayesian optimization only), default 100")
     parser.add_argument("--output_folder", type=str, default=".", required=True, help="a directory where report will be written")
+    parser.add_argument("--enable_cv_loss_reports", action='store_true')
     args = parser.parse_args()
 
     if not os.path.exists(args.input_data_file):
@@ -123,6 +124,7 @@ if __name__ == "__main__":
             seed=args.input_seed,
             early_stopping_ratio=args.early_stopping_ratio,
             early_stopping_batch_size=args.early_stopping_batch_size,
+            enable_cv_loss_reports=args.enable_cv_loss_reports,
             output_folder=args.output_folder
         )
     elif args.type == "bayesian":
@@ -137,6 +139,7 @@ if __name__ == "__main__":
             seed=args.input_seed,
             early_stopping_ratio=args.early_stopping_ratio,
             early_stopping_batch_size=args.early_stopping_batch_size,
+            enable_cv_loss_reports=args.enable_cv_loss_reports,
             output_folder=args.output_folder
         )
     else:

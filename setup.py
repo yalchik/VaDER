@@ -20,6 +20,7 @@ setuptools.setup(
         "sklearn",
         "tensorflow",
         "tensorflow_addons",
-        "matplotlib"
+        "matplotlib",
+        "PyPDF2"
     ],
 )
