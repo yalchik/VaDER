@@ -12,7 +12,7 @@ setuptools.setup(
     url="https://github.com/johanndejong/VaDER",
     packages=["vader", "vader.hp_opt", "vader.utils", "vader.hp_opt.job"],
     package_dir={'': "tensorflow2"},
-    python_requires='>=3.7',
+    python_requires='>=3.6',
     install_requires=[
         "numpy",
         "pandas",
@@ -21,6 +21,7 @@ setuptools.setup(
         "tensorflow",
         "tensorflow_addons",
         "matplotlib",
+        "optuna",
         "PyPDF2"
     ],
 )
