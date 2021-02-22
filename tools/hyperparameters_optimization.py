@@ -7,6 +7,7 @@ from typing import Tuple
 from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data,\
     generate_wtensor_from_xtensor, read_nacc_raw_data
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
+from vader.hp_opt.vader_bayesian_optimizer import VADERBayesianOptimizer
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.common import ParamsDictType
 
@@ -65,9 +66,14 @@ if __name__ == "__main__":
     parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV, default - full grid")
     parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering, default 1")
     parser.add_argument("--n_epoch", type=int, default=10, help="number of epochs for VaDER training, default 10")
+    parser.add_argument("--early_stopping_ratio", type=float, help="early stopping ratio")
+    parser.add_argument("--early_stopping_batch_size", type=int, default=5, help="early stopping batch size")
     parser.add_argument("--n_splits", type=int, default=2, help="number of splits in KFold per optimization job, default 2")
     parser.add_argument("--n_perm", type=int, default=100, help="number of permutations for prediction strength, default 100")
+    parser.add_argument("--type", type=str, choices=["gridsearch", "bayesian"], default="gridsearch")
+    parser.add_argument("--n_trials", type=int, default=100, help="number of trials (for bayesian optimization only), default 100")
     parser.add_argument("--output_folder", type=str, default=".", required=True, help="a directory where report will be written")
+    parser.add_argument("--enable_cv_loss_reports", action='store_true')
     args = parser.parse_args()
 
     if not os.path.exists(args.input_data_file):
@@ -104,17 +110,40 @@ if __name__ == "__main__":
     input_data = np.nan_to_num(x_tensor)
     input_weights = w_tensor
 
-    optimizer = VADERHyperparametersOptimizer(
-        param_grid_factory=PlainParamGridFactory(),
-        n_repeats=args.n_repeats,
-        n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
-        n_sample=args.n_sample,
-        n_consensus=args.n_consensus,
-        n_epoch=args.n_epoch,
-        n_splits=args.n_splits,
-        n_perm=args.n_perm,
-        seed=args.input_seed,
-        output_folder=args.output_folder
-    )
+    optimizer = None
+    if args.type == "gridsearch":
+        optimizer = VADERHyperparametersOptimizer(
+            param_grid_factory=PlainParamGridFactory(),
+            n_repeats=args.n_repeats,
+            n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
+            n_sample=args.n_sample,
+            n_consensus=args.n_consensus,
+            n_epoch=args.n_epoch,
+            n_splits=args.n_splits,
+            n_perm=args.n_perm,
+            seed=args.input_seed,
+            early_stopping_ratio=args.early_stopping_ratio,
+            early_stopping_batch_size=args.early_stopping_batch_size,
+            enable_cv_loss_reports=args.enable_cv_loss_reports,
+            output_folder=args.output_folder
+        )
+    elif args.type == "bayesian":
+        optimizer = VADERBayesianOptimizer(
+            n_repeats=args.n_repeats,
+            n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
+            n_trials=args.n_trials,
+            n_consensus=args.n_consensus,
+            n_epoch=args.n_epoch,
+            n_splits=args.n_splits,
+            n_perm=args.n_perm,
+            seed=args.input_seed,
+            early_stopping_ratio=args.early_stopping_ratio,
+            early_stopping_batch_size=args.early_stopping_batch_size,
+            enable_cv_loss_reports=args.enable_cv_loss_reports,
+            output_folder=args.output_folder
+        )
+    else:
+        print("ERROR: Unknown optimization type.")
+        exit(6)
 
     optimizer.run(input_data, input_weights)

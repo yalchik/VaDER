@@ -3,12 +3,13 @@ import sys
 import argparse
 import numpy as np
 import matplotlib.pyplot as plt
+import matplotlib.backends.backend_pdf
 from typing import Tuple
 from collections import Counter
 from vader import VADER
 from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, read_nacc_raw_data, \
     generate_wtensor_from_xtensor
-from vader.utils.plot_utils import plot_z_scores
+from vader.utils.plot_utils import plot_z_scores, plot_loss_history
 from vader.utils.clustering_utils import ClusteringUtils
 
 
@@ -48,6 +49,8 @@ if __name__ == "__main__":
     parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "NACC_RAW", "custom"], help="data type",
                         required=True)
     parser.add_argument("--n_epoch", type=int, default=20, help="number of training epochs")
+    parser.add_argument("--early_stopping_ratio", type=float, help="early stopping ratio")
+    parser.add_argument("--early_stopping_batch_size", type=int, default=5, help="early stopping batch size")
     parser.add_argument("--n_consensus", type=int, default=1, help="number of repeats for consensus clustering")
     parser.add_argument("--k", type=int, help="number of repeats", required=True)
     parser.add_argument("--n_hidden", nargs='+', help="hidden layers", required=True)
@@ -70,7 +73,7 @@ if __name__ == "__main__":
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path, exist_ok=True)
 
-    x_tensor, features, time_points = None, None, None
+    x_tensor, features, time_points, x_label = None, None, None, None
     if args.input_data_type == "ADNI":
         features = ("CDRSB", "MMSE", "ADAS11"),
         time_points = ("0", "6", "12", "24", "36")
@@ -115,10 +118,12 @@ if __name__ == "__main__":
                   f"_batch_size{str(args.batch_size)}" \
                   f"_n_epoch{str(args.n_epoch)}" \
                   f"_n_consensus{str(args.n_consensus)}"
-    report_file_path = os.path.join(args.output_path, report_file + ".txt")
-    plot_file_path = os.path.join(args.output_path, report_file + ".pdf")
+    report_file_path = os.path.join(args.output_path, f"{report_file}.txt")
+    plot_file_path = os.path.join(args.output_path, f"{report_file}.pdf")
+    loss_history_file_path = os.path.join(args.output_path, f"loss_history_{report_file}.pdf")
 
     if args.n_consensus and args.n_consensus > 1:
+        loss_history_pdf = matplotlib.backends.backend_pdf.PdfPages(loss_history_file_path)
         y_pred_repeats = []
         effective_k_repeats = []
         train_reconstruction_loss_repeats = []
@@ -130,7 +135,10 @@ if __name__ == "__main__":
                           learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
                           seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
             vader.pre_fit(n_epoch=10, verbose=False)
-            vader.fit(n_epoch=args.n_epoch, verbose=False)
+            vader.fit(n_epoch=args.n_epoch, verbose=False, early_stopping_ratio=args.early_stopping_ratio,
+                      early_stopping_batch_size=args.early_stopping_batch_size)
+            fig = plot_loss_history(vader, model_name=f"Model #{j}")
+            loss_history_pdf.savefig(fig)
             # noinspection PyTypeChecker
             clustering = vader.cluster(input_data, input_weights)
             with open(report_file_path, "a+") as f:
@@ -146,6 +154,7 @@ if __name__ == "__main__":
         clustering = ClusteringUtils.consensus_clustering(y_pred_repeats, num_of_clusters)
         reconstruction_loss = np.mean(train_reconstruction_loss_repeats)
         latent_loss = np.mean(train_latent_loss_repeats)
+        loss_history_pdf.close()
     else:
         seed = f"{args.seed}{i}" if args.seed else None
         # noinspection PyTypeChecker
@@ -153,7 +162,10 @@ if __name__ == "__main__":
                       learning_rate=args.learning_rate, batch_size=args.batch_size, alpha=args.alpha,
                       seed=args.seed, save_path=args.save_path, output_activation=None, recurrent=True)
         vader.pre_fit(n_epoch=10, verbose=False)
-        vader.fit(n_epoch=args.n_epoch, verbose=False)
+        vader.fit(n_epoch=args.n_epoch, verbose=False, early_stopping_ratio=args.early_stopping_ratio,
+                  early_stopping_batch_size=args.early_stopping_batch_size)
+        fig = plot_loss_history(vader)
+        fig.savefig(loss_history_file_path)
         # noinspection PyTypeChecker
         clustering = vader.cluster(input_data, input_weights)
         reconstruction_loss, latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
@@ -167,5 +179,5 @@ if __name__ == "__main__":
                 f"{list(clustering)}\n\n")
 
     if features and time_points:
-        _ = plot_z_scores(x_tensor, clustering, list(features), time_points, x_label=x_label)
-        plt.savefig(plot_file_path)
+        fig = plot_z_scores(x_tensor, clustering, list(features), time_points, x_label=x_label)
+        fig.savefig(plot_file_path)

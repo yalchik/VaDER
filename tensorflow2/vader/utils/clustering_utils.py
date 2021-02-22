@@ -96,13 +96,21 @@ class ClusteringUtils:
     @staticmethod
     def std_diff(df: pd.DataFrame) -> pd.Series:
         """Translation of the 'colSdDiff' function from the R package 'matrixStats'"""
-        std_diff = df.diff().std() / np.sqrt(2)
+        # std_diff = df.diff().std() / np.sqrt(2)
+        std_diff = [df[c].dropna().diff().std() / np.sqrt(2) for c in df.columns]
         return std_diff
 
     @staticmethod
     def calc_distribution(df: pd.DataFrame) -> Tuple[pd.Series, pd.Series]:
         mu = df.mean()
         sigma = ClusteringUtils.std_diff(df) / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
+        return mu, sigma
+
+    @staticmethod
+    def calc_distribution_v2(df):
+        mu = df.mean()
+        std_diff = [df[c].dropna().diff().std() / np.sqrt(2) for c in df.columns]
+        sigma = std_diff / np.sqrt(df.notna().sum()) * 1.96  # 95% CI
         return mu, sigma
 
     @staticmethod

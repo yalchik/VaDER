@@ -1,10 +1,12 @@
 import os
+import shutil
 import traceback
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
 from vader.hp_opt import common
 from typing import List, Optional
+from PyPDF2 import PdfFileMerger
 from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.job.full_optimization_job import FullOptimizationJob
 from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
@@ -15,7 +17,8 @@ class VADERHyperparametersOptimizer:
 
     def __init__(self, param_grid_factory: Optional[ParamGridFactory] = None, n_repeats: int = 10, n_proc: int = 1,
                  n_sample: int = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
-                 seed: Optional[int] = None, output_folder: str = "."):
+                 seed: Optional[int] = None, early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
+                 enable_cv_loss_reports: bool = False, output_folder: str = "."):
         """
         Configure output folders, output file names, param grid and logging.
 
@@ -91,6 +94,8 @@ class VADERHyperparametersOptimizer:
         self.n_splits = n_splits
         self.n_perm = n_perm
         self.seed = seed
+        self.early_stopping_ratio = early_stopping_ratio
+        self.early_stopping_batch_size = early_stopping_batch_size
 
         # Configure output folders
         self.output_folder = output_folder
@@ -100,6 +105,11 @@ class VADERHyperparametersOptimizer:
             os.makedirs(self.output_repeats_dir, exist_ok=True)
         if not os.path.exists(self.failed_jobs_dir):
             os.makedirs(self.failed_jobs_dir, exist_ok=True)
+
+        self.cv_loss_reports_dir = None
+        if enable_cv_loss_reports:
+            self.cv_loss_reports_dir = os.path.join(self.output_folder, "cv_loss_reports")
+            os.makedirs(self.cv_loss_reports_dir, exist_ok=True)
 
         # Configure param grid
         if not param_grid_factory:
@@ -114,6 +124,7 @@ class VADERHyperparametersOptimizer:
         self.output_diffs_file = os.path.join(self.output_folder, f"diffs_{self.run_id}.csv")
         self.output_all_repeats_file = os.path.join(self.output_folder, f"all_repeats_{self.run_id}.csv")
         self.output_log_file = os.path.join(self.output_folder, f"{__name__}_{self.run_id}.log")
+        self.output_cv_loss_report_file = os.path.join(self.output_folder, f"cv_loss_report_{self.run_id}.pdf")
 
         # Configure logging
         self.logger = common.log_manager.get_logger(__name__, log_file=self.output_log_file)
@@ -150,6 +161,9 @@ class VADERHyperparametersOptimizer:
         aggregator = CVResultsAggregator.from_files(self.output_repeats_dir, self.hyperparameters)
         aggregator.plot_to_pdf(self.output_pdf_report_file)
         aggregator.save_to_csv(self.output_diffs_file)
+
+        if self.cv_loss_reports_dir:
+            self.__gen_cv_loss_report()
 
         self.logger.info(f"Optimization has finished. See: {self.output_pdf_report_file}")
 
@@ -212,11 +226,20 @@ class VADERHyperparametersOptimizer:
         for i in range(self.n_repeats):
             for j, params_dict in enumerate(self.param_grid):
                 seed = int(str(self.seed) + str(j) + str(i)) if self.seed else None
-                jobs_params_list.append(
-                    (input_data, input_weights, params_dict, seed,
-                     self.n_consensus, self.n_epoch, self.n_splits, self.n_perm)
-                )
+                jobs_params_list.append((
+                    input_data, input_weights, params_dict, seed, self.n_consensus, self.n_epoch, self.n_splits,
+                    self.n_perm, self.early_stopping_ratio, self.early_stopping_batch_size, self.cv_loss_reports_dir
+                ))
         return jobs_params_list
+
+    def __gen_cv_loss_report(self):
+        pdf_files = [entry.path for entry in os.scandir(self.cv_loss_reports_dir) if entry.is_file() and entry.path.endswith(".pdf")]
+        merger = PdfFileMerger()
+        for pdf in pdf_files:
+            merger.append(pdf)
+        merger.write(self.output_cv_loss_report_file)
+        merger.close()
+        shutil.rmtree(self.cv_loss_reports_dir)
 
     def __save_all_repeats(self, cv_results_df: pd.DataFrame) -> None:
         cv_results_df.to_csv(self.output_all_repeats_file, index=False)

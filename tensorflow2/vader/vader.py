@@ -3,6 +3,7 @@ from scipy.optimize import linear_sum_assignment as linear_assignment
 from sklearn import metrics
 from scipy.stats import multivariate_normal
 import numpy as np
+import pandas as pd
 import warnings
 from sklearn.mixture import GaussianMixture
 from vader.vadermodel import VaderRNN, VaderFFN, VaderTransformer
@@ -229,12 +230,15 @@ class VADER:
         if self.save_path is not None:
             tf.keras.models.save_model(self.model, self.save_path, save_format="tf")
 
-    def fit(self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None):
+    def fit(self, n_epoch=10, learning_rate=None, verbose=False, exclude_variables=None, early_stopping_ratio=None,
+            early_stopping_batch_size=5):
         '''
             Train a VADER object.
 
             Parameters
             ----------
+            early_stopping_batch_size
+            early_stopping_ratio
             n_epoch : int
                 Train n_epoch epochs. (default: 10)
             learning_rate: float
@@ -270,6 +274,8 @@ class VADER:
 
         if verbose:
             self._print_progress(self.model, -1)
+
+        loss_diffs_list = []
         for epoch in range(n_epoch):
             n_batches = self.X.shape[0] // self.batch_size
             for iteration in range(n_batches):
@@ -279,6 +285,14 @@ class VADER:
             self.n_epoch += 1
             if verbose:
                 self._print_progress(self.model, self.n_epoch)
+            if early_stopping_ratio and len(self.loss) > 1:
+                loss_diff = self.loss[-1] - self.loss[-2]
+                loss_diff_ratio = loss_diff / self.loss[-1]
+                loss_diffs_list.append(abs(loss_diff_ratio))
+                if len(loss_diffs_list) >= early_stopping_batch_size:
+                    avg_loss_diff = sum(loss_diffs_list[-early_stopping_batch_size:]) / early_stopping_batch_size
+                    if avg_loss_diff < early_stopping_ratio:
+                        break
         if self.save_path is not None:
             tf.keras.models.save_model(self.model, self.save_path, save_format="tf")
         return 0

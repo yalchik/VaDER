@@ -7,6 +7,7 @@ import warnings
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
+import matplotlib.ticker as ticker
 from matplotlib.lines import Line2D
 from vader.utils.clustering_utils import ClusteringUtils
 from typing import List, Type, TypeVar, Tuple
@@ -39,13 +40,15 @@ class CVResultsAggregator:
     def save_to_csv(self, output_file: str) -> None:
         self.perf_df.to_csv(output_file, index=False)
 
-    def __plot_one(self, index: int) -> matplotlib.figure.Figure:
+    def __plot_one(self, index: int, title: str = None) -> matplotlib.figure.Figure:
         rows_set = self.repetitions_matrix[index]
         fig, axs = plt.subplots(2, 2, figsize=(15, 10))
-        fig.suptitle(f"#{index}: {self.df_params.loc[index].to_dict()}")
+        if not title:
+            title = f"#{index}: {self.df_params.loc[index].to_dict()}"
+        fig.suptitle(title)
         self.plot_1_1(axs[0, 0], self.df_pred_str, self.df_pred_str_null, rows_set)
         self.plot_1_2(axs[0, 1], self.diff_df, index)
-        self.plot_2_1(axs[1, 0], self.pval_df, index)
+        self.plot_2_1_ci(axs[1, 0], self.df_pred_str, self.df_pred_str_null, rows_set)
         self.plot_2_2(axs[1, 1], self.df_eff_k, rows_set)
         return fig
 
@@ -164,7 +167,31 @@ class CVResultsAggregator:
         diff_df_min = diff_df.min().min()
         diff_df_max = diff_df.max().max()
         if CVResultsAggregator.check_limit(diff_df_min) and CVResultsAggregator.check_limit(diff_df_max):
-            ax.set_ylim(diff_df_min, diff_df_max)
+            ax.set_ylim(diff_df_min - 1, diff_df_max + 1)
+
+    @staticmethod
+    def plot_2_1(ax: matplotlib.axes.SubplotBase, pval_df: pd.DataFrame, row_id: int) -> None:
+        ax.bar(pval_df.columns, -np.log10(pval_df.loc[row_id]), color="red")
+        ax.set_title("significance of difference")
+        ax.set_xlabel("k")
+        ax.set_ylabel("-log10(p-value)")
+        ax.set_ylim(0, 4)
+        # ax.set_ylim(0, max(-np.log10(pval_df)))
+
+    @staticmethod
+    def plot_2_1_ci(ax: matplotlib.axes.SubplotBase, df_pred_str: pd.DataFrame, df_pred_str_null: pd.DataFrame,
+                    rows_set: np.ndarray) -> None:
+        mu, sigma = ClusteringUtils.calc_distribution(df_pred_str.loc[rows_set])
+        mu_null, sigma_null = ClusteringUtils.calc_distribution(df_pred_str_null.loc[rows_set])
+        y = pd.DataFrame([
+            mu - sigma > mu_null + sigma_null
+        ])
+        ax.imshow(y)
+        ax.set_xlabel("k")
+        ax.set_ylabel("CI intersection")
+        ax.set_yticks([])
+        ax.xaxis.set_major_locator(ticker.FixedLocator((np.arange(len(y.columns)))))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter(y.columns))
 
     @staticmethod
     def plot_2_1(ax: matplotlib.axes.SubplotBase, pval_df: pd.DataFrame, row_id: int) -> None:
@@ -193,3 +220,15 @@ class CVResultsAggregator:
     @staticmethod
     def check_limit(number):
         return number is not None and not math.isnan(number) and not math.isinf(number)
+
+
+if __name__ == "__main__":
+    output_dir = "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077"
+    output_repeats_dir = f"{output_dir}\\csv_repeats_masked"
+    hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
+    aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
+
+    output_pdf_report_file = "d:\\workspaces\\vader_results\\Bayesian_test\\report.pdf"
+    output_diffs_file = "d:\\workspaces\\vader_results\\Bayesian_test\\diff.csv"
+    aggregator.plot_to_pdf(output_pdf_report_file)
+    aggregator.save_to_csv(output_diffs_file)

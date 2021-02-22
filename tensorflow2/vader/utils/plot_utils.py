@@ -6,6 +6,7 @@ import matplotlib.pyplot as plt
 from matplotlib.lines import Line2D
 from numpy import ndarray
 from typing import List, Union, Tuple
+from vader.vader import VADER
 from vader.hp_opt.common import ClusteringType
 from vader.utils.clustering_utils import ClusteringUtils
 
@@ -19,6 +20,7 @@ def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_l
 
     See: https://github.com/yalchik/VaDER/issues/8
     """
+    features_list = ['CDRSB', 'MMSE', 'ADAS11']
     clustering_dict = ClusteringUtils.clustering_to_dict(clustering_list)
     n_features = len(features_list)
     n_clusters = len(clustering_dict)
@@ -54,4 +56,33 @@ def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_l
     legend_lines.append(Line2D([0], [0], color="grey", linestyle="--", linewidth=1))
     axs[n_plots - 1, n_plots - 1].legend(legend_lines, clustering_labels, loc='upper right')
 
+    return fig
+
+
+def plot_loss_history(vader: VADER, model_name: str = None) -> matplotlib.figure.Figure:
+    epochs = list(range(len(vader.loss)))
+    fig, ax = plt.subplots()
+    if model_name:
+        fig.suptitle(model_name)
+    ax.plot(epochs, vader.reconstruction_loss, label="reconstruction loss")
+    ax.plot(epochs, vader.latent_loss, label="latent loss")
+    ax.plot(epochs, vader.loss, label="total loss")
+    ax.set_xlabel('epoch')
+    ax.set_ylabel('loss')
+    ax.set_title('Loss history')
+    ax.legend()
+    return fig
+
+
+def plot_cv_loss_history(vader_train: VADER, vader_val: VADER, model_name: str = None) -> matplotlib.figure.Figure:
+    epochs = list(range(max(len(vader_train.loss), len(vader_val.loss))))
+    fig, ax = plt.subplots()
+    if model_name:
+        fig.suptitle(model_name)
+    ax.plot(epochs, vader_train.loss, label="train loss")
+    ax.plot(epochs, vader_val.loss, label="validation loss")
+    ax.set_xlabel('epoch')
+    ax.set_ylabel('loss')
+    ax.set_title('CV loss history')
+    ax.legend()
     return fig
