@@ -166,7 +166,16 @@ class CVResultsAggregator:
         diff_df_min = diff_df.min().min()
         diff_df_max = diff_df.max().max()
         if CVResultsAggregator.check_limit(diff_df_min) and CVResultsAggregator.check_limit(diff_df_max):
-            ax.set_ylim(diff_df_min, diff_df_max)
+            ax.set_ylim(diff_df_min - 1, diff_df_max + 1)
+
+    @staticmethod
+    def plot_2_1(ax: matplotlib.axes.SubplotBase, pval_df: pd.DataFrame, row_id: int) -> None:
+        ax.bar(pval_df.columns, -np.log10(pval_df.loc[row_id]), color="red")
+        ax.set_title("significance of difference")
+        ax.set_xlabel("k")
+        ax.set_ylabel("-log10(p-value)")
+        ax.set_ylim(0, 4)
+        # ax.set_ylim(0, max(-np.log10(pval_df)))
 
     @staticmethod
     def plot_2_1(ax: matplotlib.axes.SubplotBase, pval_df: pd.DataFrame, row_id: int) -> None:
