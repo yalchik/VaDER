@@ -7,6 +7,7 @@ import warnings
 import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
+import matplotlib.ticker as ticker
 from matplotlib.lines import Line2D
 from vader.utils.clustering_utils import ClusteringUtils
 from typing import List, Type, TypeVar, Tuple
@@ -47,7 +48,7 @@ class CVResultsAggregator:
         fig.suptitle(title)
         self.plot_1_1(axs[0, 0], self.df_pred_str, self.df_pred_str_null, rows_set)
         self.plot_1_2(axs[0, 1], self.diff_df, index)
-        self.plot_2_1(axs[1, 0], self.pval_df, index)
+        self.plot_2_1_ci(axs[1, 0], self.df_pred_str, self.df_pred_str_null, rows_set)
         self.plot_2_2(axs[1, 1], self.df_eff_k, rows_set)
         return fig
 
@@ -178,6 +179,21 @@ class CVResultsAggregator:
         # ax.set_ylim(0, max(-np.log10(pval_df)))
 
     @staticmethod
+    def plot_2_1_ci(ax: matplotlib.axes.SubplotBase, df_pred_str: pd.DataFrame, df_pred_str_null: pd.DataFrame,
+                    rows_set: np.ndarray) -> None:
+        mu, sigma = ClusteringUtils.calc_distribution(df_pred_str.loc[rows_set])
+        mu_null, sigma_null = ClusteringUtils.calc_distribution(df_pred_str_null.loc[rows_set])
+        y = pd.DataFrame([
+            mu - sigma > mu_null + sigma_null
+        ])
+        ax.imshow(y)
+        ax.set_xlabel("k")
+        ax.set_ylabel("CI intersection")
+        ax.set_yticks([])
+        ax.xaxis.set_major_locator(ticker.FixedLocator((np.arange(len(y.columns)))))
+        ax.xaxis.set_major_formatter(ticker.FixedFormatter(y.columns))
+
+    @staticmethod
     def plot_2_1(ax: matplotlib.axes.SubplotBase, pval_df: pd.DataFrame, row_id: int) -> None:
         ax.bar(pval_df.columns, -np.log10(pval_df.loc[row_id]), color="red")
         ax.set_title("significance of difference")
@@ -206,34 +222,13 @@ class CVResultsAggregator:
         return number is not None and not math.isnan(number) and not math.isinf(number)
 
 
-# if __name__ == "__main__":
-#     output_repeats_dir = "d:\\workspaces\\vader_results\\Bayesian_test\\csv_repeats"
-#     hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
-#     aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
-#
-#     output_pdf_report_file = "d:\\workspaces\\vader_results\\Bayesian_test\\report.pdf"
-#     output_diffs_file = "d:\\workspaces\\vader_results\\Bayesian_test\\diff.csv"
-#     aggregator.plot_to_pdf(output_pdf_report_file)
-#     aggregator.save_to_csv(output_diffs_file)
-
 if __name__ == "__main__":
     output_dir = "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077"
     output_repeats_dir = f"{output_dir}\\csv_repeats_masked"
     hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
     aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
 
-    # output_pdf_report_file = f"{output_dir}\\new_report.pdf"
-    # output_diffs_file = f"{output_dir}\\new_diff.csv"
-    #
-    # cv_results_df = pd.read_csv(
-    #     "d:\\workspaces\\vader_results\\Bayesian3\\rep_bayesian_1613167700_1736077\\best_scores_n_trials100_n_repeats10_n_splits2_n_consensus1_n_epoch50_n_perm1000_seedNone.csv")
-    #
-    # aggregator.plot_to_pdf(output_pdf_report_file, cv_results_df)
-    # aggregator.save_to_csv(output_diffs_file)
-
-# if __name__ == "__main__":
-#     output_dir = "d:\\workspaces\\@Git\\ADNI_optimal_modelr"
-#     output_repeats_dir = f"{output_dir}\\csv"
-#     hyperparameters = ["n_layer", "alpha", "learning_rate", "batch_size", "n_hidden1", "n_hidden2"]
-#     aggregator = CVResultsAggregator.from_files(output_repeats_dir, hyperparameters)
-
+    output_pdf_report_file = "d:\\workspaces\\vader_results\\Bayesian_test\\report.pdf"
+    output_diffs_file = "d:\\workspaces\\vader_results\\Bayesian_test\\diff.csv"
+    aggregator.plot_to_pdf(output_pdf_report_file)
+    aggregator.save_to_csv(output_diffs_file)
