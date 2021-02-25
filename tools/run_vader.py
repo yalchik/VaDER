@@ -2,33 +2,15 @@ import os
 import sys
 import argparse
 import numpy as np
+import importlib.util
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
 from typing import Tuple
 from collections import Counter
 from vader import VADER
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data, read_nacc_raw_data, \
-    generate_wtensor_from_xtensor
+from vader.utils.data_utils import generate_wtensor_from_xtensor
 from vader.utils.plot_utils import plot_z_scores, plot_loss_history
 from vader.utils.clustering_utils import ClusteringUtils
-
-
-def read_custom_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    EDIT THIS FUNCTION TO SUPPORT THE "custom" DATA TYPE.
-
-    Reads a given csv file and produces 2 tensors (X, W), where each tensor has tis structure:
-      1st dimension is samples,
-      2nd dimension is time points,
-      3rd dimension is feature vectors.
-    X represents input data
-    W contains values 0 or 1 for each point of X.
-      "0" means the point should be ignored (e.g. because the data is missing)
-      "1" means the point should be used for training
-
-    Implementation examples: vader.utils.read_adni_data or vader.utils.read_nacc_data
-    """
-    raise NotImplementedError
 
 
 if __name__ == "__main__":
@@ -46,8 +28,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, help="a .csv file with input data", required=True)
     parser.add_argument("--input_weights_file", type=str, help="a .csv file with flags for missing values")
-    parser.add_argument("--input_data_type", choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "NACC_RAW", "custom"], help="data type",
-                        required=True)
+    parser.add_argument("--data_reader_script", type=str, help="python script declaring data reader class")
     parser.add_argument("--n_epoch", type=int, default=20, help="number of training epochs")
     parser.add_argument("--early_stopping_ratio", type=float, help="early stopping ratio")
     parser.add_argument("--early_stopping_batch_size", type=int, default=5, help="early stopping batch size")
@@ -70,57 +51,38 @@ if __name__ == "__main__":
         print("ERROR: weights data file does not exist")
         sys.exit(2)
 
+    if args.data_reader_script and not os.path.exists(args.data_reader_script):
+        print("ERROR: data reader file does not exist")
+        sys.exit(3)
+
     if not os.path.exists(args.output_path):
         os.makedirs(args.output_path, exist_ok=True)
 
+    # dynamically import data reader
+    data_reader_spec = importlib.util.spec_from_file_location("data_reader", args.data_reader_script)
+    data_reader_module = importlib.util.module_from_spec(data_reader_spec)
+    data_reader_spec.loader.exec_module(data_reader_module)
+    data_reader = data_reader_module.DataReader()
+
     x_tensor, features, time_points, x_label = None, None, None, None
-    if args.input_data_type == "ADNI":
-        features = ("CDRSB", "MMSE", "ADAS11"),
-        time_points = ("0", "6", "12", "24", "36")
-        x_label = "month"
-        x_tensor = read_adni_norm_data(args.input_data_file)
-    elif args.input_data_type == "NACC":
-        features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
-        time_points = tuple(range(15))
-        x_label = "visit"
-        x_tensor = read_nacc_data(args.input_data_file)
-    elif args.input_data_type == "PPMI":
-        print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
-        exit(3)
-    elif args.input_data_type == "ADNI_RAW":
-        features = ("CDRSB", "MMSE", "ADAS11")
-        time_points = ("0", "6", "12", "24", "36")
-        x_label = "month"
-        x_tensor = read_adni_raw_data(args.input_data_file)
-    elif args.input_data_type == "NACC_RAW":
-        features = ("NACCMMSE", "CDRSUM", "NACCFAQ")
-        time_points = ("1", "2", "3", "4", "5")
-        x_label = "visit"
-        x_tensor = read_nacc_raw_data(args.input_data_file)
-    elif args.input_data_type == "custom":
-        x_tensor = read_custom_data(args.input_data_file)
-    else:
-        print("ERROR: Unknown data type.")
-        exit(4)
-
-    if x_tensor is None:
-        print("ERROR: Cannot load input data.")
-        exit(5)
-
+    x_tensor = data_reader.read_data(args.input_data_file)
     w_tensor = generate_wtensor_from_xtensor(x_tensor)
     input_data = np.nan_to_num(x_tensor)
     input_weights = w_tensor
+    features = data_reader.features
+    time_points = data_reader.time_points
+    x_label = data_reader.time_point_meaning
     n_hidden = [int(layer_size) for layer_size in args.n_hidden]
 
-    report_file = f"{args.input_data_type}_k{str(args.k)}" \
-                  f"_n_hidden{'_'.join(args.n_hidden)}" \
-                  f"_learning_rate{str(args.learning_rate)}" \
-                  f"_batch_size{str(args.batch_size)}" \
-                  f"_n_epoch{str(args.n_epoch)}" \
-                  f"_n_consensus{str(args.n_consensus)}"
-    report_file_path = os.path.join(args.output_path, f"{report_file}.txt")
-    plot_file_path = os.path.join(args.output_path, f"{report_file}.pdf")
-    loss_history_file_path = os.path.join(args.output_path, f"loss_history_{report_file}.pdf")
+    report_suffix = f"k{str(args.k)}" \
+                    f"_n_hidden{'_'.join(args.n_hidden)}" \
+                    f"_learning_rate{str(args.learning_rate)}" \
+                    f"_batch_size{str(args.batch_size)}" \
+                    f"_n_epoch{str(args.n_epoch)}" \
+                    f"_n_consensus{str(args.n_consensus)}"
+    report_file_path = os.path.join(args.output_path, f"clustering_{report_suffix}.txt")
+    plot_file_path = os.path.join(args.output_path, f"z_scores_trajectories_{report_suffix}.pdf")
+    loss_history_file_path = os.path.join(args.output_path, f"loss_history_{report_suffix}.pdf")
 
     if args.n_consensus and args.n_consensus > 1:
         loss_history_pdf = matplotlib.backends.backend_pdf.PdfPages(loss_history_file_path)

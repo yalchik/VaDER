@@ -7,7 +7,7 @@ import multiprocessing as mp
 from vader.hp_opt import common
 from typing import List, Optional
 from PyPDF2 import PdfFileMerger
-from vader.hp_opt.param_grid_factory import ParamGridFactory
+from vader.hp_opt.interface.abstract_grid_search_params_factory import AbstractGridSearchParamsFactory
 from vader.hp_opt.job.full_optimization_job import FullOptimizationJob
 from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
 
@@ -15,7 +15,7 @@ from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
 class VADERHyperparametersOptimizer:
     """Handles the whole VaDER hyperparameters optimization process"""
 
-    def __init__(self, param_grid_factory: Optional[ParamGridFactory] = None, n_repeats: int = 10, n_proc: int = 1,
+    def __init__(self, params_factory: AbstractGridSearchParamsFactory, n_repeats: int = 10, n_proc: int = 1,
                  n_sample: int = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
                  seed: Optional[int] = None, early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
                  enable_cv_loss_reports: bool = False, output_folder: str = "."):
@@ -24,7 +24,7 @@ class VADERHyperparametersOptimizer:
 
         Parameters
         ----------
-        param_grid_factory : ParamGridFactory or None
+        params_factory : ParamGridFactory or None
             Object that produces a parameters dictionary and a parameters grid
         n_repeats : int
             Defines how many times we perform the optimization for the same set of hyperparameters.
@@ -112,10 +112,8 @@ class VADERHyperparametersOptimizer:
             os.makedirs(self.cv_loss_reports_dir, exist_ok=True)
 
         # Configure param grid
-        if not param_grid_factory:
-            param_grid_factory = ParamGridFactory()
-        self.hyperparameters = [key for key in param_grid_factory.get_full_param_dict().keys() if key != "k"]
-        self.param_grid = param_grid_factory.get_randomized_param_grid(n_sample)
+        self.hyperparameters = [key for key in params_factory.get_full_param_dict().keys() if key != "k"]
+        self.param_grid = params_factory.get_randomized_param_grid(n_sample)
 
         # Configure output files names
         self.run_id = f"n_grid{len(self.param_grid)}_n_sample{n_sample}_n_repeats{n_repeats}_n_splits{n_splits}_" \

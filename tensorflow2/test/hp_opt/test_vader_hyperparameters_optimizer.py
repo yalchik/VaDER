@@ -5,7 +5,7 @@ import logging
 import multiprocessing as mp
 from typing import Final
 from vader.utils.data_utils import generate_x_w_y
-from vader.hp_opt.param_grid_factory import ParamGridFactory
+from vader.hp_opt.interface.abstract_grid_search_params_factory import AbstractGridSearchParamsFactory
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 
 
@@ -13,7 +13,7 @@ class TestVADERHyperparametersOptimizer:
 
     OUTPUT_FOLDER: Final[str] = __name__
 
-    class MyParamGridFactory(ParamGridFactory):
+    class MyParamGridFactory(AbstractGridSearchParamsFactory):
 
         def get_full_param_dict(self):
             param_dict = {

@@ -1,38 +1,23 @@
 import os
+import shutil
+import optuna
 import traceback
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
+from typing import List
 from vader.hp_opt import common
-from typing import List, Optional
-from vader.hp_opt.param_grid_factory import ParamGridFactory
 from vader.hp_opt.job.full_optimization_job import FullOptimizationJob
 from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
-import uuid
-from numpy import ndarray
-from abc import ABC, abstractmethod
-from vader import VADER
-from vader.hp_opt import common
-from typing import List, Dict, Union, Optional
-from sklearn.model_selection import KFold
-from numpy import ndarray
-from collections import Counter
-from typing import Dict, Union, Optional
-from vader import VADER
-from vader.hp_opt.job.abstract_optimization_job import AbstractOptimizationJob
-from vader.utils.clustering_utils import ClusteringUtils
-from vader.utils.data_utils import generate_x_w_y, read_adni_norm_data, generate_wtensor_from_xtensor
-import optuna
 from PyPDF2 import PdfFileMerger
-import shutil
 
 
 class VADERBayesianOptimizer:
     SECONDS_IN_DAY = 86400
 
-    def __init__(self, n_repeats: int = 10, n_proc: int = 1, n_trials: int = 100, n_consensus: int = 1,
-                 n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100, seed: Optional[int] = None,
-                 early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
+    def __init__(self, params_factory, n_repeats: int = 10, n_proc: int = 1, n_trials: int = 100,
+                 n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
+                 seed: Optional[int] = None, early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
                  enable_cv_loss_reports: bool = False, output_folder: str = "."):
         self.n_trials = n_trials
         self.n_proc = n_proc
@@ -64,15 +49,8 @@ class VADERBayesianOptimizer:
 
         # Configure param grid
         self.hyperparameters = ["n_hidden", "learning_rate", "batch_size", "alpha"]
-        self.params_limits = {
-            "k": [2, 3, 4, 5, 6],
-            "alpha": [0.0, 1.0],
-            "learning_rate": [1e-4, 1e-2],
-            "batch_size": [8, 128],
-            "n_hidden_layers": [1, 2],
-            "hidden_layer_size": [1, 128]
-        }
-        self.k_list = self.params_limits["k"]
+        self.params_limits = params_factory.get_param_limits_dict()
+        self.k_list = params_factory.get_k_list()
 
         # Configure output files names
         self.run_id = f"n_trials{n_trials}_n_repeats{n_repeats}_n_splits{n_splits}_" \
@@ -84,8 +62,7 @@ class VADERBayesianOptimizer:
         self.output_cv_loss_report_file = os.path.join(self.output_folder, f"cv_loss_report_{self.run_id}.pdf")
 
         # Configure logging
-        # self.logger = common.log_manager.get_logger(__name__, log_file=self.output_log_file)
-        self.logger = common.log_manager.get_logger(__name__)
+        self.logger = common.log_manager.get_logger(__name__, log_file=self.output_log_file)
         self.logger.info(f"{__name__} is initialized with run_id={self.run_id}")
 
     def __construct_jobs_params_list(self, input_data: np.ndarray, input_weights: np.ndarray) -> List[tuple]:
@@ -193,6 +170,7 @@ class VADERBayesianOptimizer:
             n_perm=self.n_perm,
             reports_dir=self.cv_loss_reports_dir
         )
+        # noinspection PyBroadException
         try:
             self.logger.info(f"Job has started with id={job.cv_id} and job_params_dict={params_dict}")
             result = job.run()
@@ -258,21 +236,3 @@ class VADERBayesianOptimizer:
         results_df.to_csv(os.path.join(self.output_trials_dir, f"{trial_id}.csv"), index=False)
         score = results_df["prediction_strength_diff"].mean() if "prediction_strength_diff" in results_df.columns else None
         return score
-
-
-if __name__ == "__main__":
-    x_tensor_with_nans = read_adni_norm_data("d:\\workspaces\\vader_data\\ADNI\\Xnorm.csv")
-    W = generate_wtensor_from_xtensor(x_tensor_with_nans)
-    X = np.nan_to_num(x_tensor_with_nans)
-    optimizer = VADERBayesianOptimizer(
-        n_repeats=5,
-        n_proc=1,
-        n_trials=10,
-        n_consensus=1,
-        n_epoch=10,
-        n_splits=2,
-        n_perm=10,
-        seed=None,
-        output_folder="d:\\workspaces\\vader_results\\Bayesian_test4"
-    )
-    optimizer.run(X, W)

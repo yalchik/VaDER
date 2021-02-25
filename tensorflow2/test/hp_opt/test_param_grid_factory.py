@@ -1,10 +1,10 @@
-from vader.hp_opt.param_grid_factory import ParamGridFactory
+from vader.hp_opt.interface.abstract_grid_search_params_factory import AbstractGridSearchParamsFactory
 
 
 class TestParamGridFactory:
 
     def test_gen_list_of_combinations(self):
-        n_hidden = ParamGridFactory.gen_list_of_combinations([0, 1, 2])
+        n_hidden = AbstractGridSearchParamsFactory.gen_list_of_combinations([0, 1, 2])
         assert n_hidden == [[1], [2], [4], [1, 1], [1, 2], [1, 4], [2, 1], [2, 2], [2, 4], [4, 1], [4, 2], [4, 4]]
 
     def test_map_param_dict_to_param_grid(self):
@@ -15,7 +15,7 @@ class TestParamGridFactory:
             "batch_size": [16],
             "alpha": [1.0]
         }
-        param_grid = ParamGridFactory.map_param_dict_to_param_grid(param_dict)
+        param_grid = AbstractGridSearchParamsFactory.map_param_dict_to_param_grid(param_dict)
         assert len(param_grid) == 2
         assert param_grid == [
             {
@@ -40,5 +40,5 @@ class TestParamGridFactory:
             "batch_size": [16, 32],
             "alpha": [1.0]
         }
-        param_grid = ParamGridFactory.map_param_dict_to_param_grid(param_dict)
+        param_grid = AbstractGridSearchParamsFactory.map_param_dict_to_param_grid(param_dict)
         assert len(param_grid) == 8

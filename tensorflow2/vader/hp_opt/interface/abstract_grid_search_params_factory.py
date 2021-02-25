@@ -1,12 +1,17 @@
 import random
 import itertools
 import pandas as pd
+from abc import ABC, abstractmethod
 from typing import List, Dict, Tuple, Union, Optional
 from vader.hp_opt.common import ParamsDictType, ParamsGridType
 
 
-class ParamGridFactory:
+class AbstractGridSearchParamsFactory(ABC):
     """Contains methods to create parameter dictionaries and parameter grids."""
+
+    @abstractmethod
+    def get_full_param_dict(self) -> ParamsDictType:
+        pass
 
     def get_randomized_param_grid(self, n_sample: int) -> ParamsGridType:
         """
@@ -46,25 +51,6 @@ class ParamGridFactory:
         Parameter grid (list of dictionaries mapping hyperparameters to certain values)
         """
         return ParamGridFactory.map_param_dict_to_param_grid(self.get_full_param_dict())
-
-    def get_full_param_dict(self) -> ParamsDictType:
-        """
-        Returns the whole parameter dictionary. This method is supposed to be overridden in sub-classes.
-        The current implementation returns the parameter dictionary corresponding to the main paper:
-            https://academic.oup.com/gigascience/article/8/11/giz134/5626377
-
-        Returns
-        -------
-        Parameter dictionary (mapping hyperparameters to their ranges of values)
-        """
-        param_dict = {
-            "k": list(range(2, 11)),
-            "n_hidden": self.gen_list_of_combinations([0, 1, 2, 3, 4, 5, 6]),
-            "learning_rate": [0.0001, 0.001, 0.01, 0.1],
-            "batch_size": [16, 32, 64, 128],
-            "alpha": [1.0]
-        }
-        return param_dict
 
     @staticmethod
     def map_param_dict_to_param_grid(param_dict: ParamsDictType) -> ParamsGridType:

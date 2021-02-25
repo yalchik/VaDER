@@ -3,47 +3,10 @@ import sys
 import argparse
 import numpy as np
 import multiprocessing as mp
-from typing import Tuple
-from vader.utils.data_utils import read_adni_norm_data, read_nacc_data, read_adni_raw_data,\
-    generate_wtensor_from_xtensor, read_nacc_raw_data
+import importlib.util
+from vader.utils.data_utils import generate_wtensor_from_xtensor
 from vader.hp_opt.vader_hyperparameters_optimizer import VADERHyperparametersOptimizer
 from vader.hp_opt.vader_bayesian_optimizer import VADERBayesianOptimizer
-from vader.hp_opt.param_grid_factory import ParamGridFactory
-from vader.hp_opt.common import ParamsDictType
-
-
-class PlainParamGridFactory(ParamGridFactory):
-
-    def get_full_param_dict(self) -> ParamsDictType:
-        """
-        EDIT THIS FUNCTION TO OVERRIDE THE PARAMETER GRID
-        """
-        param_dict = {
-            "k": list(range(2, 7)),
-            "n_hidden": [[128, 8], [64, 8], [32, 8], [128, 16], [64, 16]],
-            "learning_rate": [0.0001, 0.001, 0.01],
-            "batch_size": [16, 32, 64],
-            "alpha": [1.0]
-        }
-        return param_dict
-
-
-def read_custom_data(filename: str) -> Tuple[np.ndarray, np.ndarray]:
-    """
-    EDIT THIS FUNCTION TO SUPPORT THE "custom" DATA TYPE.
-
-    Reads a given csv file and produces 2 tensors (X, W), where each tensor has tis structure:
-      1st dimension is samples,
-      2nd dimension is time points,
-      3rd dimension is feature vectors.
-    X represents input data
-    W contains values 0 or 1 for each point of X.
-      "0" means the point should be ignored (e.g. because the data is missing)
-      "1" means the point should be used for training
-
-    Implementation examples: vader.utils.read_adni_data or vader.utils.read_nacc_data
-    """
-    raise NotImplementedError
 
 
 if __name__ == "__main__":
@@ -58,9 +21,10 @@ if __name__ == "__main__":
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, required=True, help=".csv file with input data")
-    parser.add_argument("--input_data_type", type=str, choices=["ADNI", "NACC", "PPMI", "ADNI_RAW", "NACC_RAW", "custom"], required=True)
     parser.add_argument("--input_weights_file", type=str, help=".csv file with flags for missing values")
     parser.add_argument("--input_seed", type=int, help="used both as KFold random_state and VaDER seed")
+    parser.add_argument("--param_factory_script", type=str, help="python script declaring param grid factory")
+    parser.add_argument("--data_reader_script", type=str, help="python script declaring data reader class")
     parser.add_argument("--n_repeats", type=int, default=10, help="number of repeats, default 10")
     parser.add_argument("--n_proc", type=int, default=6, help="number of processor units that can be used, default 6")
     parser.add_argument("--n_sample", type=int, help="number of hyperparameters set per CV, default - full grid")
@@ -84,28 +48,26 @@ if __name__ == "__main__":
         print("ERROR: weights data file does not exist")
         sys.exit(2)
 
-    x_tensor = None
-    if args.input_data_type == "ADNI":
-        x_tensor = read_adni_norm_data(args.input_data_file)
-    elif args.input_data_type == "NACC":
-        x_tensor = read_nacc_data(args.input_data_file)
-    elif args.input_data_type == "PPMI":
-        print("ERROR: Sorry, PPMI data processing has not been implemented yet.")
-        exit(3)
-    elif args.input_data_type == "ADNI_RAW":
-        x_tensor = read_adni_raw_data(args.input_data_file)
-    elif args.input_data_type == "NACC_RAW":
-        x_tensor = read_nacc_raw_data(args.input_data_file)
-    elif args.input_data_type == "custom":
-        x_tensor = read_custom_data(args.input_data_file)
-    else:
-        print("ERROR: Unknown data type.")
-        exit(4)
+    if args.param_factory_script and not os.path.exists(args.param_factory_script):
+        print("ERROR: param grid factory file does not exist")
+        sys.exit(3)
 
-    if x_tensor is None:
-        print("ERROR: Cannot load input data.")
-        exit(5)
+    if args.data_reader_script and not os.path.exists(args.data_reader_script):
+        print("ERROR: data reader file does not exist")
+        sys.exit(4)
 
+    # dynamically import param factory
+    param_factory_spec = importlib.util.spec_from_file_location("params_factory", args.param_factory_script)
+    param_factory_module = importlib.util.module_from_spec(param_factory_spec)
+    param_factory_spec.loader.exec_module(param_factory_module)
+
+    # dynamically import data reader
+    data_reader_spec = importlib.util.spec_from_file_location("data_reader", args.data_reader_script)
+    data_reader_module = importlib.util.module_from_spec(data_reader_spec)
+    data_reader_spec.loader.exec_module(data_reader_module)
+    data_reader = data_reader_module.DataReader()
+
+    x_tensor = data_reader.read_data(args.input_data_file)
     w_tensor = generate_wtensor_from_xtensor(x_tensor)
     input_data = np.nan_to_num(x_tensor)
     input_weights = w_tensor
@@ -113,7 +75,7 @@ if __name__ == "__main__":
     optimizer = None
     if args.type == "gridsearch":
         optimizer = VADERHyperparametersOptimizer(
-            param_grid_factory=PlainParamGridFactory(),
+            params_factory=param_factory_module.ParamsFactory(),
             n_repeats=args.n_repeats,
             n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
             n_sample=args.n_sample,
@@ -129,6 +91,7 @@ if __name__ == "__main__":
         )
     elif args.type == "bayesian":
         optimizer = VADERBayesianOptimizer(
+            params_factory=param_factory_module.ParamsFactory(),
             n_repeats=args.n_repeats,
             n_proc=args.n_proc if args.n_proc else mp.cpu_count(),
             n_trials=args.n_trials,
@@ -144,6 +107,6 @@ if __name__ == "__main__":
         )
     else:
         print("ERROR: Unknown optimization type.")
-        exit(6)
+        exit(5)
 
     optimizer.run(input_data, input_weights)
