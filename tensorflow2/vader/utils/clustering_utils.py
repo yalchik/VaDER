@@ -94,9 +94,13 @@ class ClusteringUtils:
         return linkage_array
 
     @staticmethod
-    def std_diff(df: pd.DataFrame) -> pd.Series:
+    def std_diff_legacy(df: pd.DataFrame) -> pd.Series:
         """Translation of the 'colSdDiff' function from the R package 'matrixStats'"""
-        # std_diff = df.diff().std() / np.sqrt(2)
+        std_diff = df.diff().std() / np.sqrt(2)
+        return std_diff
+
+    @staticmethod
+    def std_diff(df: pd.DataFrame) -> pd.Series:
         std_diff = [df[c].dropna().diff().std() / np.sqrt(2) for c in df.columns]
         return std_diff
 

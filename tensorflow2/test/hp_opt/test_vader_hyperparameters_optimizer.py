@@ -39,7 +39,7 @@ class TestVADERHyperparametersOptimizer:
     def test_run(self):
         X_train, W_train, _ = generate_x_w_y(7, 400)
         optimizer = VADERHyperparametersOptimizer(
-            param_grid_factory=self.MyParamGridFactory(),
+            params_factory=self.MyParamGridFactory(),
             seed=None,
             n_repeats=3,
             n_proc=mp.cpu_count(),

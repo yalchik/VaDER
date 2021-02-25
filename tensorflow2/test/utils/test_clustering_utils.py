@@ -134,13 +134,13 @@ class TestClusteringUtils:
         )
 
     def test_std_diff(self):
-        assert_series_equal(ClusteringUtils.std_diff(
+        assert_series_equal(ClusteringUtils.std_diff_legacy(
             pd.DataFrame(np.array([[1, 2, 3], [4, 5, 6], [7, 8, 9]]))
         ), pd.Series([0.0, 0.0, 0.0]))
-        assert_series_equal(ClusteringUtils.std_diff(
+        assert_series_equal(ClusteringUtils.std_diff_legacy(
             pd.DataFrame(np.array([[1, 2, 3], [4, 5, 6], [8, 6, 8]]))
         ), pd.Series([0.5, 1.0, 0.5]))
-        assert_series_equal(ClusteringUtils.std_diff(
+        assert_series_equal(ClusteringUtils.std_diff_legacy(
             pd.DataFrame(np.array([[1.1, 2.4, 3.7], [4.1, 5.5, 6.9], [7.77, 8.88, 9.99]]))
         ), pd.Series([0.335, 0.14, 0.055]))
 
