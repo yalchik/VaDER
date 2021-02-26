@@ -13,19 +13,19 @@ from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
 
 
 class VADERHyperparametersOptimizer:
-    """Handles the whole VaDER hyperparameters optimization process"""
+    """Handles the whole VaDER hyperparameters optimization process (grid search)"""
 
     def __init__(self, params_factory: AbstractGridSearchParamsFactory, n_repeats: int = 10, n_proc: int = 1,
-                 n_sample: int = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
-                 seed: Optional[int] = None, early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
-                 enable_cv_loss_reports: bool = False, output_folder: str = "."):
+                 n_sample: Optional[int] = None, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2,
+                 n_perm: int = 100, seed: Optional[int] = None, early_stopping_ratio: float = Optional[float],
+                 early_stopping_batch_size: int = 5, enable_cv_loss_reports: bool = False, output_folder: str = "."):
         """
         Configure output folders, output file names, param grid and logging.
 
         Parameters
         ----------
-        params_factory : ParamGridFactory or None
-            Object that produces a parameters dictionary and a parameters grid
+        params_factory : AbstractGridSearchParamsFactory
+            Object that can produce a parameters grid.
         n_repeats : int
             Defines how many times we perform the optimization for the same set of hyperparameters.
             The higher this parameter - the better is optimization, but the worse is performance.
@@ -59,6 +59,14 @@ class VADERHyperparametersOptimizer:
             The higher this parameter - the better is optimization, but the worse is performance.
             Optimal values: 10-50.
             Default is 10.
+        early_stopping_ratio : float or None
+            Defines the relative difference at which the model can stop fitting.
+            Optimal value: 0.03 (which means that we stop fitting the model once loss changes less than 3% on average).
+            Default is None (no early stopping).
+        early_stopping_batch_size : int
+            Defines how many epochs we use to calculate average relative difference in loss for early stopping criteria.
+            When early_stopping_ratio is None, it does not have any effect.
+            Default is 5.
         n_splits : int
             Defines into how many chunks we split the data for the cross-validation step.
             Increase this parameter for bigger data sets.
@@ -75,6 +83,9 @@ class VADERHyperparametersOptimizer:
             If None - the random number generator will use its in-built initialization logic
                 (e.g. using the current system time)
             Default is None.
+        enable_cv_loss_reports : bool
+            If true, produces intermittent reports showing loss changes over epochs during cross-validation.
+            Default is False.
         output_folder : str
             Defines a folder where all outputs will be written.
             Outputs include:

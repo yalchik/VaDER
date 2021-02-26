@@ -20,10 +20,9 @@ if __name__ == "__main__":
     
     Example:
     python run_vader.py --input_data_file=../data/ADNI/Xnorm.csv
-                        --input_data_type=ADNI
-                        --save_path=../vader_results/model/
+                        --data_reader_script=addons/data_reader/adni_norm_data.py
                         --output_path=../vader_results/clustering/
-                        --k=4 --n_hidden 128 8 --learning_rate=1e-3 --batch_size=32 --alpha=1 --n_epoch=20                        
+                        --k=3 --n_hidden 128 8 --learning_rate=1e-3 --batch_size=64 --alpha=1 --n_epoch=20                        
     """
     parser = argparse.ArgumentParser()
     parser.add_argument("--input_data_file", type=str, help="a .csv file with input data", required=True)

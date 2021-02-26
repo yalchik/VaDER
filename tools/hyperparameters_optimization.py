@@ -15,7 +15,9 @@ if __name__ == "__main__":
       showing the performance of different hyperparameters sets for different k-s.
     
     Example:
-    python hyperparameters_optimization.py --input_data_file=../data/ADNI/Xnorm.csv --input_data_type=ADNI
+    python hyperparameters_optimization.py --input_data_file=../data/ADNI/Xnorm.csv
+                                           --param_factory_script=addons/params_factory/grid_search_params.py
+                                           --data_reader_script=addons/data_reader/adni_norm_data.py
                                            --n_repeats=5 --n_sample=5 --n_consensus=1 --n_epoch=10
                                            --n_splits=2 --n_perm=10 --output_folder=../vader_results 
     """

@@ -13,14 +13,13 @@ from vader.utils.clustering_utils import ClusteringUtils
 
 def plot_z_scores(x_tensor: ndarray, clustering_list: ClusteringType, features_list: List[str],
                   time_points_list: Union[List[int], tuple], cmap_name: str = "Set1",
-                  x_label: str = "month") -> matplotlib.figure.Figure:
+                  x_label: str = "time point") -> matplotlib.figure.Figure:
     """
     Generates normalized cluster mean trajectories relative to baseline (x-axis in months).
     Reference: Figure 4 from the paper.
 
     See: https://github.com/yalchik/VaDER/issues/8
     """
-    features_list = ['CDRSB', 'MMSE', 'ADAS11']
     clustering_dict = ClusteringUtils.clustering_to_dict(clustering_list)
     n_features = len(features_list)
     n_clusters = len(clustering_dict)

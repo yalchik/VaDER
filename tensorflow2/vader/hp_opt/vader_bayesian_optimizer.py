@@ -5,20 +5,98 @@ import traceback
 import numpy as np
 import pandas as pd
 import multiprocessing as mp
-from typing import List
+from typing import List, Optional
 from vader.hp_opt import common
 from vader.hp_opt.job.full_optimization_job import FullOptimizationJob
 from vader.hp_opt.cv_results_aggregator import CVResultsAggregator
+from vader.hp_opt.interface.abstract_bayesian_params_factory import AbstractBayesianParamsFactory
 from PyPDF2 import PdfFileMerger
 
 
 class VADERBayesianOptimizer:
+    """Handles the whole VaDER hyperparameters optimization process (bayesian)"""
+
     SECONDS_IN_DAY = 86400
 
-    def __init__(self, params_factory, n_repeats: int = 10, n_proc: int = 1, n_trials: int = 100,
-                 n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
+    def __init__(self, params_factory: AbstractBayesianParamsFactory, n_repeats: int = 10, n_proc: int = 1,
+                 n_trials: int = 100, n_consensus: int = 1, n_epoch: int = 10, n_splits: int = 2, n_perm: int = 100,
                  seed: Optional[int] = None, early_stopping_ratio: float = None, early_stopping_batch_size: int = 5,
                  enable_cv_loss_reports: bool = False, output_folder: str = "."):
+        """
+        Configure output folders, output file names, param grid and logging.
+
+        Parameters
+        ----------
+        params_factory : AbstractBayesianParamsFactory
+            Object that can produce a parameters grid.
+        n_repeats : int
+            Defines how many times we perform the optimization for the same set of hyperparameters.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 10-20.
+            Default is 10.
+        n_proc : int
+            Defines how many processor units can be used to run optimization jobs.
+            If the value is too big - maximum number of CPUs will be used.
+            Since each jobs splits into some sub-processes too,
+              a good approach will be to set n_proc to a maximum number of CPUs divided by 4.
+            Default is 1 (no multi-processing).
+        n_trials : int
+            Defines how many sets of hyperparameters (excluding 'k'-s) we choose to evaluate.
+            Each set of hyperparameters is chosen automatically according to the Bayesian optimization rules based on
+              the performance of previous hyperparameters.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 100-200.
+            Default is 100.
+        n_consensus : int
+            Defines how many times we train vader for each job for each data split.
+            If n_consensus > 1, then it runs the "consensus clustering" algorithm
+              to determine the final clustering.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 1-10.
+            Default is 1 (no consensus clustering).
+        n_epoch : int
+            Defines how many epochs we train during the vader's "fit" step.
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 10-50.
+            Default is 10.
+        early_stopping_ratio : float or None
+            Defines the relative difference at which the model can stop fitting.
+            Optimal value: 0.03 (which means that we stop fitting the model once loss changes less than 3% on average).
+            Default is None (no early stopping).
+        early_stopping_batch_size : int
+            Defines how many epochs we use to calculate average relative difference in loss for early stopping criteria.
+            When early_stopping_ratio is None, it does not have any effect.
+            Default is 5.
+        n_splits : int
+            Defines into how many chunks we split the data for the cross-validation step.
+            Increase this parameter for bigger data sets.
+            Optimal values: 2-10.
+            Default is 2.
+        n_perm : int
+            Defines how many times we permute each clustering during the calculation of the "prediction_strength_null".
+            The higher this parameter - the better is optimization, but the worse is performance.
+            Optimal values: 100-1000.
+            Default is 100.
+        seed : int or None
+            Initializes the random number generator.
+            It can be used to achieve reproducible results.
+            If None - the random number generator will use its in-built initialization logic
+                (e.g. using the current system time)
+            Default is None.
+        enable_cv_loss_reports : bool
+            If true, produces intermittent reports showing loss changes over epochs during cross-validation.
+            Default is False.
+        output_folder : str
+            Defines a folder where all outputs will be written.
+            Outputs include:
+              * final pdf report;
+              * best hyperparameters for each 'k' with their scores;
+              * "csv_repeats" folder with intermediate csv chunks;
+              * "csv_trials" folder with intermediate csv chunks;
+              * "failed_jobs" folder with stack-traces for all failed jobs;
+              * logging file.
+            Default: the current folder.
+        """
         self.n_trials = n_trials
         self.n_proc = n_proc
         self.n_repeats = n_repeats
