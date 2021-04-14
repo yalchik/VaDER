@@ -12,6 +12,7 @@ class DataReader(AbstractDataReader):
     features: tuple = ("NACCMMSE", "CDRSUM", "NACCFAQ")
     time_points = ("1", "2", "3", "4", "5")
     time_point_meaning: str = "visit"
+    ids_list: list = None
 
     def read_data(self, filename: str) -> np.ndarray:
         features_list = list(self.features)
@@ -24,6 +25,7 @@ class DataReader(AbstractDataReader):
         df_ad_filtered_normalized_pivoted.columns = [f"{col[0]}_{col[1]}" for col in
                                                      df_ad_filtered_normalized_pivoted.columns.values]
         df = df_ad_filtered_normalized_pivoted
+        self.ids_list = list(df.index)
 
         x_dict = OrderedDict.fromkeys(self.features)
         for feature in self.features:

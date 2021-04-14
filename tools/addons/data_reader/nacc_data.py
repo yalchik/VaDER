@@ -12,15 +12,18 @@ class DataReader(AbstractDataReader):
     features: tuple = ("NACCMMSE", "CDRSUM", "NACCFAQ")
     time_points: tuple = None
     time_point_meaning: str = "visit"
+    ids_list: list = None
 
     def read_data(self, filename: str) -> np.ndarray:
         df = pd.read_csv(filename, index_col=0)
+        self.df = df
 
         features_list = list(self.features)
         self.time_points = [str(i) for i in range(1, df["NACCVNUM"].max()+1)]
         pivoted_normalized_df = df.pivot(index="NACCID", columns="NACCVNUM", values=features_list)
         pivoted_normalized_df.columns = [f"{col[0]}_{col[1]}" for col in pivoted_normalized_df.columns.values]
         df = pivoted_normalized_df
+        self.ids_list = list(df.index)
 
         x_dict = OrderedDict.fromkeys(self.features)
         for feature in self.features:

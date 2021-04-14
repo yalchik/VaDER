@@ -2,6 +2,7 @@ import os
 import sys
 import argparse
 import numpy as np
+import pandas as pd
 import importlib.util
 import matplotlib.pyplot as plt
 import matplotlib.backends.backend_pdf
@@ -63,7 +64,6 @@ if __name__ == "__main__":
     data_reader_spec.loader.exec_module(data_reader_module)
     data_reader = data_reader_module.DataReader()
 
-    x_tensor, features, time_points, x_label = None, None, None, None
     x_tensor = data_reader.read_data(args.input_data_file)
     w_tensor = generate_wtensor_from_xtensor(x_tensor)
     input_data = np.nan_to_num(x_tensor)
@@ -71,6 +71,7 @@ if __name__ == "__main__":
     features = data_reader.features
     time_points = data_reader.time_points
     x_label = data_reader.time_point_meaning
+    ids_list = data_reader.ids_list
     n_hidden = [int(layer_size) for layer_size in args.n_hidden]
 
     report_suffix = f"k{str(args.k)}" \
@@ -79,9 +80,9 @@ if __name__ == "__main__":
                     f"_batch_size{str(args.batch_size)}" \
                     f"_n_epoch{str(args.n_epoch)}" \
                     f"_n_consensus{str(args.n_consensus)}"
-    report_file_path = os.path.join(args.output_path, f"clustering_{report_suffix}.txt")
     plot_file_path = os.path.join(args.output_path, f"z_scores_trajectories_{report_suffix}.pdf")
     loss_history_file_path = os.path.join(args.output_path, f"loss_history_{report_suffix}.pdf")
+    clustering_file_path = os.path.join(args.output_path, f"clustering_{report_suffix}.csv")
 
     if args.n_consensus and args.n_consensus > 1:
         loss_history_pdf = matplotlib.backends.backend_pdf.PdfPages(loss_history_file_path)
@@ -102,9 +103,6 @@ if __name__ == "__main__":
             loss_history_pdf.savefig(fig)
             # noinspection PyTypeChecker
             clustering = vader.cluster(input_data, input_weights)
-            with open(report_file_path, "a+") as f:
-                f.write(f"Proportion: {Counter(clustering)}\n"
-                        f"{list(clustering)}\n\n")
             effective_k = len(Counter(clustering))
             y_pred_repeats.append(clustering)
             effective_k_repeats.append(effective_k)
@@ -132,12 +130,7 @@ if __name__ == "__main__":
         reconstruction_loss, latent_loss = vader.reconstruction_loss[-1], vader.latent_loss[-1]
     total_loss = reconstruction_loss + args.alpha * latent_loss
 
-    with open(report_file_path, "a+") as f:
-        f.write(f"Proportion: {Counter(clustering)}\n"
-                f"Reconstruction loss: {reconstruction_loss}\n"
-                f"Lat loss: {latent_loss}\n"
-                f"Total loss: {total_loss}\n"
-                f"{list(clustering)}\n\n")
+    pd.Series(list(clustering), index=ids_list, dtype=np.int64, name='Cluster').to_csv(clustering_file_path)
 
     if features and time_points:
         fig = plot_z_scores(x_tensor, clustering, list(features), time_points, x_label=x_label)

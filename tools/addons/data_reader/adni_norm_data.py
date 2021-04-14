@@ -8,9 +8,11 @@ class DataReader(AbstractDataReader):
     features: tuple = ("CDRSB", "MMSE", "ADAS11")
     time_points: tuple = ("0", "6", "12", "24", "36")
     time_point_meaning: str = "month"
+    ids_list: list = None
 
     def read_data(self, filename: str):
         df = pd.read_csv(filename)
+        self.ids_list = list(df.index)
 
         x_dict = OrderedDict.fromkeys(self.features)
         for feature in self.features:
