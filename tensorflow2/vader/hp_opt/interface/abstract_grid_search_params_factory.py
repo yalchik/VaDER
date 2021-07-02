@@ -50,7 +50,7 @@ class AbstractGridSearchParamsFactory(ABC):
         -------
         Parameter grid (list of dictionaries mapping hyperparameters to certain values)
         """
-        return ParamGridFactory.map_param_dict_to_param_grid(self.get_full_param_dict())
+        return AbstractGridSearchParamsFactory.map_param_dict_to_param_grid(self.get_full_param_dict())
 
     @staticmethod
     def map_param_dict_to_param_grid(param_dict: ParamsDictType) -> ParamsGridType:
